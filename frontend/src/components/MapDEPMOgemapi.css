@@ -1,0 +1,22 @@
+/* Assurez-vous que la carte occupe tout l'espace du conteneur parent */
+.map-container {
+    position: relative; /* Position relative pour les éléments positionnés à l'intérieur */
+    height: 100%; /* Hauteur de la carte égale à celle du conteneur */
+    width: 100%;  /* Largeur de la carte égale à celle du conteneur */
+}
+
+/* Ajustez la taille de la carte ici si nécessaire */
+.map {
+    width: 80%; /* 80% de la largeur totale pour la carte */
+    position: relative;
+}
+
+.sidebar {
+    width: 20%; /* 20% de la largeur totale pour la colonne du filtre et du bouton */
+    padding: 10px; /* Espacement autour du contenu */
+    box-sizing: border-box; /* Inclure le padding dans la largeur totale */
+}
+
+.map-element {
+    height: 100vh; /* Assurez-vous que la carte prend toute la hauteur de l'écran */
+}

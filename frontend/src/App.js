@@ -1,25 +1,29 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import LoginForm from './components/LoginForm';
+import FolderContent from './components/FolderContent';
 
-function App() {
+
+const App = () => {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [initialPath, setInitialPath] = useState('/folder'); // Assurez-vous que ce chemin est correct
+
+  const handleLogin = (path) => {
+    setLoggedIn(true);
+    setInitialPath(path || '/folder'); // Assurez-vous que `path` a une valeur correcte
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={!loggedIn ? <LoginForm onLogin={handleLogin} /> : <Navigate to={initialPath} replace />}
+        />
+        <Route path="/folder" element={<FolderContent />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;

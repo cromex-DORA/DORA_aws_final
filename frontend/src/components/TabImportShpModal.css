@@ -1,0 +1,29 @@
+.modal-dialog {
+    max-width: 90%; /* Ajuste ce pourcentage selon tes besoins */
+
+}
+
+.modal-content {
+    height: calc(100vh - 3.5rem); /* Ajuste la hauteur en fonction de l'en-tête et du pied de page */
+}
+
+.dropzone {
+    border: 2px dashed #007bff;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.file-list {
+    margin-top: 20px;
+}
+
+.file-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.file-list li {
+    padding: 5px 0;
+}
