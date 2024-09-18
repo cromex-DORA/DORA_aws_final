@@ -23,7 +23,6 @@ def dossier_principal_user(decoded_token):
 
 def dossiers_secondaires_user(decoded_token):
     role = decoded_token["role"]
-    CODE_DEP = decoded_token["CODE_DEP"]
     if role=="user":
         folder_prefix = 'MO_gemapi/'
         folders = Class_Folder.lister_rep_et_fichiers(bucket_users_files, folder_prefix)

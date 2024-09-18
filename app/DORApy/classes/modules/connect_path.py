@@ -68,7 +68,6 @@ def get_file_path_racine(file_name):
         return local_file_path
     
 def upload_file_vers_s3(type_bucket,file,path):
-    
     def upload_workbook(workbook, bucket, key):
         with NamedTemporaryFile() as tmp:
             workbook.save(tmp.name)
@@ -98,4 +97,10 @@ def download_file_from_s3(type_bucket,file_key):
         ExpiresIn=100
     )
     return url
-    
+
+def lister_exclu_fichiers_folder_s3(bucket,path):
+    list_obj = list(s3r.Bucket(bucket).objects.filter(Prefix=path))
+    list_key = [x.key for x in list_obj]
+    list_fichiers_sans_folder = [key for key in list_key if not key.endswith("/")]
+    list_noms_fichiers = [key.split("/")[-1] for key in list_fichiers_sans_folder]
+    return list_noms_fichiers

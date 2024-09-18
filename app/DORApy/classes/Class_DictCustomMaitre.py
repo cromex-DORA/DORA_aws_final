@@ -3,7 +3,7 @@ import pandas as pd
 import geopandas as gpd
 import glob
 
-from app.DORApy.classes.modules import custom,PPG,dataframe,tableau_excel
+from app.DORApy.classes.modules import custom,dataframe,tableau_excel
 from app.DORApy.classes import Class_NGdfREF
 
 from app.DORApy.classes.Class_DictBoiteComplete import DictBoiteComplete

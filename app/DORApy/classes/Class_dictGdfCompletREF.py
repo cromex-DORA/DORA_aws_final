@@ -3,7 +3,7 @@ from pickle import NONE
 import pandas as pd
 import geopandas as gpd
 
-from app.DORApy.classes.modules import PPG,MO_gemapi,ME,BVG,SAGE,dep,ROE
+from app.DORApy.classes.modules import MO_gemapi,ME,dep
 from app.DORApy.classes.Class_GdfCompletREF import GdfCompletREF
 from app.DORApy.classes.Class_DictDfInfoShp import DictDfInfoShp
 from shapely.geometry import MultiPolygon, Polygon, Point

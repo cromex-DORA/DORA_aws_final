@@ -28,6 +28,8 @@ Flask-Cors
 fonttools
 frozenlist
 fsspec
+geojson
+geojson_rewind
 geopandas
 greenlet
 gunicorn

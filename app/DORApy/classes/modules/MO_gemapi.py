@@ -8,20 +8,6 @@ from app.DORApy.classes.modules import dataframe
 from dotenv import load_dotenv
 from app.DORApy.classes.modules import connect_path
 
-################################################################################################################################################################################
-#Module d'import des fichiers shapefile MO_gemapi
-################################################################################################################################################################################
-def import_shp_MO_gemapi(self):
-    #couche PPG
-    filename = ("shp_files\\syndicats GEMAPI\\MO_gemapi_NA.shp")
-    filename = connect_path.get_file_path_racine(filename)
-    shp_MO_gemapi = gpd.read_file(filename)
-    shp_MO_gemapi = shp_MO_gemapi.rename(columns={'geometry':'geometry_MO'})
-    shp_MO_gemapi = shp_MO_gemapi.set_geometry('geometry_MO')
-    #shp_MO_gemapi = shp_MO_gemapi[['CODE_MO',"NOM_MO","ALIAS",'geometry_MO',"CODE_tempo"]]
-    shp_MO_gemapi = shp_MO_gemapi.to_crs('epsg:2154')
-    return shp_MO_gemapi
-
 
 ################################################################################################################################################################################
 #Module de toilettage des colonnes remplissages manuellement dans le fichier info Mo_gemapi

@@ -1,6 +1,6 @@
 import pandas as pd
 import geopandas as gpd
-from app.DORApy.classes.modules import texte,custom,PPG,dataframe
+from app.DORApy.classes.modules import dataframe
 import os.path
 from os import path
 import numpy as np

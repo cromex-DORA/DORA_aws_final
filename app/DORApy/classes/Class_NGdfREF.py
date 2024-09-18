@@ -1,14 +1,12 @@
 import os
 import geopandas as gpd
-import pandas as pd
-import time
-from shapely.geometry import Polygon,MultiPolygon
-from shapely.validation import make_valid
+from app.DORApy.classes.modules.connect_path import s3
+from shapely import Polygon,MultiPolygon
 import json
 
 environment = os.getenv('ENVIRONMENT')
 chemin_fichiers_shp = os.getenv('chemin_fichiers_shp')
-
+bucket_common_files = os.getenv('S3_BUCKET_COMMON_FILES')
 
 class NGdfREF:
     def __init__(self,REF, path=None,type_geom=None):
@@ -24,7 +22,7 @@ class NGdfREF:
         self.type_de_geom = type_geom
         if REF !="custom":
             self._ajout_gdf(path,REF)
-            #self._scan_file(path)
+            self._scan_file(path)
 
     def _ajout_gdf(self,path,REF):
         gdf = gpd.read_file(path)
@@ -45,11 +43,10 @@ class NGdfREF:
         self.gdf = gdf
 
     def _scan_file(self,path):
-        ti_m = os.path.getmtime(path)
-        m_ti = time.ctime(ti_m)
-        t_obj = time.strptime(m_ti)
-        T_stamp  = time.strftime("%Y-%m-%d %H:%M:%S+00:00",t_obj)
-        self.date_modif = T_stamp
+        get_last_modified = lambda obj: int(obj['LastModified'].strftime('%s'))
+        objs = s3.list_objects_v2(Bucket=bucket_common_files, Prefix=self.path_relative, Delimiter='/') ['Contents']
+        date_modif = [obj['LastModified'] for obj in sorted(objs, key=get_last_modified)][0]
+        self.date_modif = date_modif
 
     def __repr__(self):
         return f"repertoire : {self.REF},{self.type_de_geom}"

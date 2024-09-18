@@ -9,30 +9,6 @@ dict_config_espace,dict_config_police = config_DORA.creation_dicts_config()
 ################################################################################################################################################################################
 #ME
 ################################################################################################################################################################################
-def import_shp_ME_AG(self):
-    #couche PPG
-    filename = ("shp_files\\ME\\BV ME sup AG 2021.shp")
-    filename = connect_path.get_file_path_racine(filename)
-    shp_ME = gpd.read_file(filename)
-    #On dégage le premier FR
-    shp_ME["CODE_ME"] = shp_ME["EU_CD"]
-    shp_ME = shp_ME.rename(columns={'geometry':'geometry_ME'})
-    shp_ME = shp_ME.set_geometry('geometry_ME')
-    return shp_ME
-
-def import_shp_ME_LB(self):
-    #couche PPG
-    shp_ME = gpd.read_file("/mnt/g/travail/carto/couches de bases/ME/BV ME sup LB 2021.shp")
-    shp_ME = shp_ME.to_crs(2154)
-    #On calmes les ardeurs des LB
-    shp_clipping = gpd.read_file("/mnt/g/travail/carto/couches de bases/ME/couche_clipping_pour_diminuer les ME_LB.shp")
-    shp_ME = gpd.sjoin(shp_ME, shp_clipping)
-    #On dégage le premier FR
-    shp_ME = shp_ME.rename({"cdbvspemdo":'CODE_ME'},axis=1)
-    shp_ME = shp_ME.rename(columns={'geometry':'geometry_ME'})
-    shp_ME = shp_ME.set_geometry('geometry_ME')
-    return shp_ME
-
 def creation_df_chainage_ME_aval():
     df_chainage = pd.read_csv("/mnt/g/travail/carto/couches de bases/ME/chainage_BV_ME_AG_2022.csv")
     df_chainage['CODE_ME_AVAL'] = df_chainage['CODE_ME_AVAL']

@@ -12,6 +12,11 @@ import sys
 import itertools
 import tempfile
 import shutil
+import pandas as pd
+from io import StringIO
+from geojson_rewind import rewind
+from  geojson import dump
+from datetime import datetime
 _default = object()
 
 environment = os.getenv('ENVIRONMENT')
@@ -29,10 +34,10 @@ class NDictGdf(dict):
     
     def chercher_gdf(echelle_REF):
         if echelle_REF=="SAGE":
-            chemin_fichiers_shp = "shp_files\\SAGE\\SAGE superficiels.shp"
+            chemin_fichiers_shp = "shp_files\\SAGE\\SAGE_SUP_2024.gpkg"
             type_geom = "polygon"
         if echelle_REF=="BVG":
-            chemin_fichiers_shp = "shp_files\\BVG\\data\\bv_gestion_sdage2022\\bv_gestion_sdage2022.shp"
+            chemin_fichiers_shp = "shp_files\\BVG\\BVG_AG_2022.gpkg"
             type_geom = "polygon"        
         if echelle_REF=="PPG":
             chemin_fichiers_shp = "shp_files\\ppg\\PPG_NA.shp"
@@ -41,7 +46,7 @@ class NDictGdf(dict):
             chemin_fichiers_shp = "shp_files\\dep\\departement NAQ + AG.shp"
             type_geom = "polygon"
         if echelle_REF=="ME":
-            chemin_fichiers_shp = "shp_files\\ME\\BV ME sup AG 2021.shp"
+            chemin_fichiers_shp = "shp_files\\ME\\BV_ME_SUP_AG_2022.gpkg"
             type_geom = "polygon"
         if echelle_REF=="SME":
             chemin_fichiers_shp = "shp_files\\SOUS_ME\\SME_DORA_MO.shp"
@@ -53,8 +58,8 @@ class NDictGdf(dict):
             chemin_fichiers_shp = "shp_files\\ROE\\ROE_AG_2023.gpkg"
             type_geom = "point"
         if echelle_REF=="ME_CE":
-            chemin_fichiers_shp = "shp_files\\ME\\ME CE AG complet.shp"
-            type_geom = "lignes"          
+            chemin_fichiers_shp = "shp_files\\ME\\ME_CE_AG_2022.gpkg"
+            type_geom = "lignes" 
         chemin_fichiers_shp = connect_path.get_file_path_racine(chemin_fichiers_shp)
         gdf_REF = NGdfREF(echelle_REF,chemin_fichiers_shp,type_geom)
         gdf_REF.gdf = gdf_REF.gdf.set_geometry("geometry_"+echelle_REF)
@@ -178,11 +183,15 @@ def remplissage_dictgdf(self,dict_custom_maitre=None,dict_dict_info_REF=None,lis
 
 def creation_dict_decoupREF(self,dict_custom_maitre=None):
     def ajout_custom_liste_echelle_REF(self,dict_custom_maitre):
-        liste_echelle_REF_projet = dict_custom_maitre.liste_echelle_REF_projet + ['custom']
+        if dict_custom_maitre!=None:
+            liste_echelle_REF_projet = dict_custom_maitre.liste_echelle_REF_projet + ['custom']
+        if dict_custom_maitre==None:
+            liste_echelle_REF_projet = [NGdf.echelle_REF_shp for Nom_gdf,NGdf in self.items()]
         return liste_echelle_REF_projet
     
     def ajout_custom_dict_geom_REF(self,dict_custom_maitre):
-        self['gdf_custom'] = dict_custom_maitre.gdf_custom
+        if dict_custom_maitre!=None:
+            self['gdf_custom'] = dict_custom_maitre.gdf_custom
         return self
 
     def hierarchisation_liste_echelle(liste_combinaison_REF):
@@ -305,7 +314,7 @@ def creation_dict_decoupREF(self,dict_custom_maitre=None):
     dict_geomREF_decoupREF = suppression_CODE_REF_vide(dict_geomREF_decoupREF)
     return dict_geomREF_decoupREF
 
-def extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_custom_maitre,dict_decoupREF):
+def extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_custom_maitre=None,dict_decoupREF=None):
     class DictListeREFparREF(dict):
         def __getitem__(self, key):
             if key not in self:
@@ -334,13 +343,64 @@ def extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_custom_maitre,dic
         dict_relation_shp_liste['dict_liste_' + REF1 +'_par_' + REF2].REF_maitre = REF2
         dict_relation_shp_liste['dict_liste_' + REF1 +'_par_' + REF2].REF_noob = REF1
 
-
-    list_CODE_custom = [v.CODE_custom for k,v in dict_custom_maitre.items()]
+    if dict_custom_maitre!=None:
+        list_CODE_custom = [v.CODE_custom for k,v in dict_custom_maitre.items()]
     for nom_dict_relation,dict_relation_REF1_REF2 in dict_relation_shp_liste.items():
         if nom_dict_relation.endswith("custom"):
             for CODE_custom in list_CODE_custom:
                 if CODE_custom not in dict_relation_REF1_REF2:
                     dict_relation_REF1_REF2[CODE_custom] = []
     return dict_relation_shp_liste
+
+def generation_geojson_sur_s3(self):
+    def creation_geojson_REF_s3(REF):
+        temp_dir = tempfile.mkdtemp()
+        temp_shapefile_path = os.path.join(temp_dir, "fichier_tempo.geojson")
+        geojson_file=dict_gdf.export_gdf_pour_geojson()
+        essai=rewind(geojson_file)
+
+        with open(temp_shapefile_path, 'w') as f:
+            dump(essai, f)
+        # Chemin du fichier shapefile temporaire
+        destination_fichier = os.path.join(dict_gdf.path_folder, REF+".geojson")
+        s3r.meta.client.upload_file(temp_shapefile_path, bucket_common_files, destination_fichier) 
+
+        shutil.rmtree(temp_dir)
+        print(f"Temporary files in {temp_dir} deleted.")    
+
+    for nom_gdf,dict_gdf in self.items():
+        REF = dict_gdf.echelle_REF_shp
+        list_noms_fichiers = connect_path.lister_exclu_fichiers_folder_s3(bucket_common_files,dict_gdf.path_folder)
+        if REF + ".geojson" not in list_noms_fichiers:
+            creation_geojson_REF_s3(REF)
+            #creation
+        if REF + ".geojson" in list_noms_fichiers:
+            #Recuperation csv avec date
+            if "metadata_" + REF + ".csv" not in list_noms_fichiers:
+                path_csv = os.path.join(dict_gdf.path_folder,"metadata_" + REF + ".csv")
+                dict_date = {'nom_fichier': [dict_gdf.name], 'date': [dict_gdf.date_modif]}
+                df_date = pd.DataFrame(data=dict_date)
+                csv_buffer = StringIO()
+                df_date.to_csv(csv_buffer)
+                s3r.Object(bucket_common_files, path_csv).put(Body=csv_buffer.getvalue())     
+
+            if "metadata_" + REF + ".csv" in list_noms_fichiers:
+                date_modif_gpkg = dict_gdf.date_modif
+                path_csv = os.path.join(dict_gdf.path_folder,"metadata_" + REF + ".csv")
+                obj = s3.get_object(Bucket=bucket_common_files, Key=path_csv)
+                df_date = pd.read_csv(obj['Body'])
+                #comparaison date
+                date = df_date['date'].to_list()[0]
+                date_format = date_modif_gpkg.strftime('%Y-%m-%d %H:%M:%S+00:00')
+                if date!=date_format:
+                    creation_geojson_REF_s3(REF)
+                    df_date.loc[0,"date"] = date_format
+                    csv_buffer = StringIO()
+                    df_date.to_csv(csv_buffer)
+                    s3r.Object(bucket_common_files, path_csv).put(Body=csv_buffer.getvalue())
+                    #Actualisation de la date
+                
+                
+
 
  
