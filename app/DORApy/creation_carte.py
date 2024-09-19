@@ -9,6 +9,7 @@ start_time = time.time()
 import os
 import sys
 from flask import Response
+import copy
 
 
 #####################################################################
@@ -228,11 +229,11 @@ def creation_image_visualisation_folder(CODE_MO):
     return image_url
 
 def creation_carto_syndicats(CODE_DEP):
-    dict_dict_info_REF = DictDfInfoShp({})
+    '''dict_dict_info_REF = DictDfInfoShp({})
     dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()    
     dict_geom_REF = Class_NDictGdf.NDictGdf({})
-    dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=['MO'])
-    dict_gdf_MO =   dict_geom_REF['gdf_MO']
+    dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=['MO'])'''
+    dict_gdf_MO =   copy.deepcopy(dict_geom_REF['gdf_MO'])
     df_info_MO = dict_dict_info_REF['df_info_MO']
     liste_MO_dans_le_DEP = []
     liste_EPTB = df_info_MO.loc[df_info_MO['TYPE_MO']=="EPTB"]['CODE_MO'].to_list()
@@ -251,17 +252,9 @@ def creation_carto_syndicats(CODE_DEP):
     return geojson_data
 
 def creation_bb_REF(REF,CODE_REF):
-    dict_geom_REF = Class_NDictGdf.NDictGdf({})
-    dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=None,liste_echelle_REF=[REF])    
     dict_gdf =   dict_geom_REF['gdf_'+REF]
     dict_gdf.gdf = dict_gdf.gdf.loc[dict_gdf.gdf['CODE_'+REF]==CODE_REF]
     bbox = dict_gdf.gdf.to_crs("EPSG:4326").bounds
     bbox = bbox.to_dict('records')[0]
     return bbox
 
-def test_import_MO(REF,CODE_REF):
-    dict_geom_REF = Class_NDictGdf.NDictGdf({})
-    dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=None,liste_echelle_REF=["MO"])  
-    dict_gdf_MO =   dict_geom_REF['gdf_MO']  
-    geojson_data = Class_NGdfREF.NGdfREF.export_gdf_pour_geojson(dict_gdf_MO)
-    return geojson_data
