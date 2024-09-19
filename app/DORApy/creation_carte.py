@@ -2,6 +2,7 @@
 import warnings
 from shapely.errors import ShapelyDeprecationWarning
 from app.DORApy.classes.modules import connect_path
+from api import dict_geom_REF,dict_dict_info_REF
 import pandas as pd
 import time
 start_time = time.time()
@@ -257,3 +258,10 @@ def creation_bb_REF(REF,CODE_REF):
     bbox = dict_gdf.gdf.to_crs("EPSG:4326").bounds
     bbox = bbox.to_dict('records')[0]
     return bbox
+
+def test_import_MO(REF,CODE_REF):
+    dict_geom_REF = Class_NDictGdf.NDictGdf({})
+    dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=None,liste_echelle_REF=["MO"])  
+    dict_gdf_MO =   dict_geom_REF['gdf_MO']  
+    geojson_data = Class_NGdfREF.NGdfREF.export_gdf_pour_geojson(dict_gdf_MO)
+    return geojson_data

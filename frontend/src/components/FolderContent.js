@@ -1,46 +1,37 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import MapDEPMOgemapi from './MapDEPMOgemapi';
 import FolderList from './FolderList';
 import './FolderContent.css';
+import { fetchMOThunk } from '../features/geojson/geojsonSlice';
 
 const FolderContent = () => {
+    const dispatch = useDispatch();
+    const geoJsonData = useSelector((state) => state.geojson.mo); // Utilise le state de Redux pour GeoJSON
     const [folders, setFolders] = useState([]);
     const [files, setFiles] = useState([]);
     const [currentPath, setCurrentPath] = useState('');
     const [folderName, setFolderName] = useState('');
     const [selectedFolderId, setSelectedFolderId] = useState(null);
-    const [geoJsonData, setGeoJsonData] = useState(null);
     const [view, setView] = useState('folders'); // 'folders' or 'files'
     const [highlightedFolderId, setHighlightedFolderId] = useState(null);
 
-    const fetchContent = async () => {
-        const token = localStorage.getItem('token');
-        try {
-            // Fetch GeoJSON Data
-            const geoResponse = await fetch(`${process.env.REACT_APP_IP_SERV}/geojson_complet_folders`, {
-                headers: { 'Authorization': token }
-            });
-            if (!geoResponse.ok) throw new Error(`HTTP error! Status: ${geoResponse.status}`);
-            const geoJsonData = await geoResponse.json();
-            setGeoJsonData(geoJsonData);
+    // Appelle fetchContent au chargement du composant
+    useEffect(() => {
+        dispatch(fetchMOThunk());
+    }, [dispatch]);
 
-            // Extract folders from geoJsonData
+    // Met à jour les dossiers lorsque geoJsonData change
+    useEffect(() => {
+        if (geoJsonData) {
             const folderData = geoJsonData.features.map(feature => ({
                 id: feature.id,
                 name: feature.properties.NOM_MO,
                 files: feature.properties.files || []  // Assume files are in properties
-            }));
-
+            })) || [];
             setFolders(folderData);
-            
-        } catch (error) {
-            console.error('Fetching content failed:', error);
         }
-    };
-
-    useEffect(() => {
-        fetchContent();
-    }, []);
+    }, [geoJsonData]); // Dépendance sur geoJsonData
 
     const createFile = async () => {
         const formData = new FormData();
@@ -61,12 +52,11 @@ const FolderContent = () => {
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
             console.log('Tableau vierge DORA créé !'); // Log de débogage
-            fetchContent(); // Actualiser le contenu du dossier
+            dispatch(fetchMOThunk()); // Actualiser le contenu du dossier après création
         } catch (error) {
             console.error('Échec de la création du fichier:', error);
         }
     };
-
 
     useEffect(() => {
         if (selectedFolderId) {
@@ -138,7 +128,6 @@ const FolderContent = () => {
             </div>
         </div>
     );
-
 };
 
 export default FolderContent;

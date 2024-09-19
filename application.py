@@ -4,21 +4,22 @@ from flask_cors import CORS
 from app.DORApy import creation_carte,ajout_MO_ou_PPG
 from app.DORApy.security import gestion_db_users,gestion_file_upload
 from app.DORApy.classes.modules import connect_path
-from app.DORApy import gestion_admin,creation_tableau_vierge_DORA
-#from app.DORApy.decorators.token_admin import check_token_admin
+from app.DORApy import gestion_admin,creation_tableau_vierge_DORA,creation_carte
+from api import api_bp
 import jwt
 import datetime
 import sys
-import pandas as pd
 import tempfile
 from werkzeug.utils import secure_filename
-from app.DORApy.classes.modules import connect_path,config_DORA
 
 app = Flask(__name__, static_folder='frontend/build')
 CORS(app, resources={r"/*": {"origins": "*"}})  # Remplacez '*' par les domaines spécifiques si possible
+app.register_blueprint(api_bp)
 SECRET_JKEY = os.getenv('SECRET_JKEY')
 
 dict_users = gestion_admin.import_dict_users_s3()
+
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -62,7 +63,6 @@ def geojson_complet_folders():
     except jwt.InvalidTokenError:
         return jsonify({'message': 'Invalid token'}), 403
 
-    user_folder = gestion_db_users.dossier_principal_user(decoded_token)
     dict_sous_dossiers = gestion_db_users.dossiers_secondaires_user(decoded_token)
 
     CODE_DEP = decoded_token['CODE_DEP']
@@ -204,12 +204,6 @@ def upload_complete_MO_gemapi():
 
     ajout_MO_ou_PPG.ajout_shp_MO_gemapi_BDD_DORA(nom_mo,alias,code_siren,geometry)
     return jsonify({'message': 'Error processing files'}), 500
-
-@app.route("/bonjour")
-def hello_world():
-    current_year = datetime.datetime.now().year
-    return f"encore un vieux 3 0 de ces morts {current_year}"
-
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')

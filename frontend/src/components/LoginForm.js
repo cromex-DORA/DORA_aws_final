@@ -27,8 +27,8 @@ const Login = () => {
       localStorage.setItem('token', data.token);
       setMessage('Login successful');
 
-      if (data.role === 'admin') {
-        navigate('/admin');
+      if (data.role === 'test') {
+        navigate('/test');
       } else if (data.role === 'user') {  // Remplace le else par un autre if pour une vérification explicite
         navigate('/folder');
       } else {

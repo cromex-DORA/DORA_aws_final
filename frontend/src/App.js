@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
 import FolderContent from './components/FolderContent';
+import TestContent from './components/TestContent';
 
 
 const App = () => {
@@ -21,6 +22,7 @@ const App = () => {
           element={!loggedIn ? <LoginForm onLogin={handleLogin} /> : <Navigate to={initialPath} replace />}
         />
         <Route path="/folder" element={<FolderContent />} />
+        <Route path="/test" element={<TestContent />} />
       </Routes>
     </Router>
   );

@@ -21,14 +21,19 @@ def dossier_principal_user(decoded_token):
         user_folder="MO_gemapi"
     return user_folder
 
-def dossiers_secondaires_user(decoded_token):
-    role = decoded_token["role"]
-    if role=="user":
+def dossiers_secondaires_user(decoded_token=None):
+    
+    if decoded_token==None:
         folder_prefix = 'MO_gemapi/'
-        folders = Class_Folder.lister_rep_et_fichiers(bucket_users_files, folder_prefix)
+        folders = Class_Folder.lister_rep_et_fichiers(bucket_users_files, folder_prefix)        
+    if decoded_token!=None:    
+        role = decoded_token["role"]
+        if role=="user":
+            folder_prefix = 'MO_gemapi/'
+            folders = Class_Folder.lister_rep_et_fichiers(bucket_users_files, folder_prefix)
 
-    if role=="admin":
-        dict_sous_dossiers_user = {}
+        if role=="admin":
+            dict_sous_dossiers_user = {}
     return folders
 
 
