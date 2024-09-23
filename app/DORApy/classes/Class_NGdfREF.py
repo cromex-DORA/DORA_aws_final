@@ -3,6 +3,9 @@ import geopandas as gpd
 from app.DORApy.classes.modules.connect_path import s3
 from shapely import Polygon,MultiPolygon
 import json
+import pandas as pd
+import os
+import sys
 
 environment = os.getenv('ENVIRONMENT')
 chemin_fichiers_shp = os.getenv('chemin_fichiers_shp')
@@ -65,6 +68,21 @@ class NGdfREF:
         geojson_data = gdf.to_json()
         geojson_data = json.loads(geojson_data)
         return geojson_data
+    
+    def selection_par_DEP(dict_gdf_REF,type_REF,CODE_DEP,dict_relation):
+        CODE_DEP = str(CODE_DEP)
+        liste_REF = dict_relation['dict_liste_'+type_REF+"_par_DEP"][CODE_DEP]
+        dict_gdf_REF.gdf = dict_gdf_REF.gdf.loc[dict_gdf_REF.gdf['CODE_'+type_REF].isin(liste_REF)]
+        bounds = dict_gdf_REF.gdf.to_crs("EPSG:4326").bounds
+        bounds['bounds'] = bounds.apply(lambda row: row.tolist(), axis=1)
+        bounds['bounds'] = bounds['bounds'].apply(lambda x:[[x[0],x[1]],[x[2],x[3]]])
+        bounds = bounds[['bounds']]
+        dict_gdf_REF.gdf = pd.merge(dict_gdf_REF.gdf,bounds,left_index=True,right_index=True)
+        return dict_gdf_REF 
+    
+    def ajout_TYPE_MO(dict_gdf_REF):
+        dict_gdf_REF.gdf = pd.merge(dict_gdf_REF.gdf,dict_gdf_REF.df_info[['CODE_MO',"TYPE_MO"]],on="CODE_MO")
+        return dict_gdf_REF
 
 
 def chercher_gdf_custom(dict_custom_maitre,dict_geom_REF,dict_dict_info_REF):

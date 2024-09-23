@@ -32,6 +32,8 @@ const MapEvents = ({ setZoomLevel }) => {
 };
 
 const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, setHighlightedFolderId, handleFolderClick }) => {
+    console.log("Essai filtre", geoJsonData); // Ajoute le log ici
+    
     const [filter, setFilter] = useState('Syndicat');
     const [filteredGeoJsonData, setFilteredGeoJsonData] = useState(null);
     const [initialBounds, setInitialBounds] = useState(null);
@@ -40,6 +42,10 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     const [isModalOpen, setIsModalOpen] = useState(false);
     const mapRef = useRef();
     const geoJsonLayerRef = useRef();
+
+    // Ajout de l'état pour les catégories PPG et ME
+    const [showPPG, setShowPPG] = useState(true); // Afficher PPG par défaut
+    const [showME, setShowME] = useState(true);   // Afficher ME par défaut
 
     const openModal = () => {
         setIsModalOpen(true);
@@ -86,18 +92,28 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
 
     // Effect to filter GeoJSON data when geoJsonData or filter changes
     useEffect(() => {
+        
         if (geoJsonData) {
             const updatedFilteredData = {
                 ...geoJsonData,
                 features: geoJsonData.features.filter(feature => {
                     const typeMO = feature.properties['TYPE_MO'];
-                    return filter ? typeMO === filter : true;
+
+                    // Filtrer par TYPE_MO (filtre actuel)
+                    const passesFilter = filter ? typeMO === filter : true;
+
+                    // Filtrer par PPG et ME en fonction des cases à cocher
+                    const isPPG = feature.properties['CATEGORY'] === 'PPG' && showPPG;
+                    const isME = feature.properties['CATEGORY'] === 'ME' && showME;
+
+                    // Affiche les polygones qui correspondent au filtre ou à PPG/ME cochés
+                    return passesFilter || isPPG || isME;
                 })
             };
 
             setFilteredGeoJsonData(updatedFilteredData);
         }
-    }, [filter, geoJsonData]);
+    }, [filter, geoJsonData, showPPG, showME]);
 
     // Update GeoJSON layer style when highlightedFolderId changes
     useEffect(() => {
@@ -202,6 +218,27 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
         <div className="map-container">
             <div className="sidebar">
                 <FiltretypeMO selectedOption={filter} setSelectedOption={setFilter} />
+
+                {/* Légende avec cases à cocher pour PPG et ME */}
+                <div className="legend">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={showPPG}
+                            onChange={(e) => setShowPPG(e.target.checked)}
+                        />
+                        Afficher PPG
+                    </label>
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={showME}
+                            onChange={(e) => setShowME(e.target.checked)}
+                        />
+                        Afficher ME
+                    </label>
+                </div>
+
                 <Button className="import-button" onClick={openModal}>
                     Importer des polygones manquants
                 </Button>
@@ -225,15 +262,15 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
                         key={JSON.stringify(filteredGeoJsonData)}
                         data={filteredGeoJsonData}
                         onEachFeature={onEachFeature}
+                        ref={geoJsonLayerRef}
                         style={{
-                            color: '#0000ff',
                             weight: 5,
+                            color: '#0000ff',
                             opacity: 0.65
                         }}
-                        ref={geoJsonLayerRef}
                     />
                 )}
-                <ZoomToBounds bounds={selectedBounds} />
+                {selectedBounds && <ZoomToBounds bounds={selectedBounds} />}
                 <MapEvents setZoomLevel={setZoomLevel} />
             </MapContainer>
         </div>

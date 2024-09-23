@@ -228,27 +228,24 @@ def creation_image_visualisation_folder(CODE_MO):
     image_png.savefig(image_url)
     return image_url
 
-def creation_carto_syndicats(CODE_DEP):
-    '''dict_dict_info_REF = DictDfInfoShp({})
-    dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()    
-    dict_geom_REF = Class_NDictGdf.NDictGdf({})
-    dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=['MO'])'''
-    dict_gdf_MO =   copy.deepcopy(dict_geom_REF['gdf_MO'])
-    df_info_MO = dict_dict_info_REF['df_info_MO']
+
+
+def ajout_liste_CODE_REF(dict_gdf_REF,type_REF,CODE_DEP):
+    df_info_REF = dict_gdf_REF.df_info
     liste_MO_dans_le_DEP = []
-    liste_EPTB = df_info_MO.loc[df_info_MO['TYPE_MO']=="EPTB"]['CODE_MO'].to_list()
+    liste_EPTB = df_info_REF.loc[df_info_REF['TYPE_MO']=="EPTB"]['CODE_MO'].to_list()
     print(liste_EPTB, file=sys.stderr)
-    liste_Syndicat_dans_le_DEP = df_info_MO.loc[(df_info_MO['CODE_DEP'].apply(lambda x: CODE_DEP in x))&(df_info_MO['TYPE_MO']=="Syndicat")]['CODE_MO'].to_list()
+    liste_Syndicat_dans_le_DEP = df_info_REF.loc[(df_info_REF['CODE_DEP'].apply(lambda x: CODE_DEP in x))&(df_info_REF['TYPE_MO']=="Syndicat")]['CODE_MO'].to_list()
     liste_MO_dans_le_DEP.extend(liste_EPTB)
     liste_MO_dans_le_DEP.extend(liste_Syndicat_dans_le_DEP)
-    dict_gdf_MO.gdf = dict_gdf_MO.gdf.loc[dict_gdf_MO.gdf['CODE_MO'].isin(liste_MO_dans_le_DEP)]
-    dict_gdf_MO.gdf = pd.merge(dict_gdf_MO.gdf,dict_gdf_MO.df_info[['CODE_MO',"TYPE_MO"]],on="CODE_MO")
-    bounds = dict_gdf_MO.gdf.to_crs("EPSG:4326").bounds
+    dict_gdf_REF.gdf = dict_gdf_REF.gdf.loc[dict_gdf_REF.gdf['CODE_MO'].isin(liste_MO_dans_le_DEP)]
+    dict_gdf_REF.gdf = pd.merge(dict_gdf_REF.gdf,dict_gdf_REF.df_info[['CODE_MO',"TYPE_MO"]],on="CODE_MO")
+    bounds = dict_gdf_REF.gdf.to_crs("EPSG:4326").bounds
     bounds['bounds'] = bounds.apply(lambda row: row.tolist(), axis=1)
     bounds['bounds'] = bounds['bounds'].apply(lambda x:[[x[0],x[1]],[x[2],x[3]]])
     bounds = bounds[['bounds']]
-    dict_gdf_MO.gdf = pd.merge(dict_gdf_MO.gdf,bounds,left_index=True,right_index=True)
-    geojson_data = Class_NGdfREF.NGdfREF.export_gdf_pour_geojson(dict_gdf_MO)
+    dict_gdf_REF.gdf = pd.merge(dict_gdf_REF.gdf,bounds,left_index=True,right_index=True)
+    geojson_data = Class_NGdfREF.NGdfREF.export_gdf_pour_geojson(dict_gdf_REF)
     return geojson_data
 
 def creation_bb_REF(REF,CODE_REF):

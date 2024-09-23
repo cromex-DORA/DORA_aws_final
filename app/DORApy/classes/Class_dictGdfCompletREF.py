@@ -197,11 +197,11 @@ class dictGdfCompletREF(dict):
         return self
 
     def extraction_dict_relation_shp_liste_a_partir_decoupREF_par_custom(self):
-        class DictListeREFparREF(dict):
+        class DictRelationListeREFparREF(dict):
             @property
             def _constructor(self):
-                return DictListeREFparREF
-        dict_relation_shp_liste = DictListeREFparREF({})
+                return DictRelationListeREFparREF
+        dict_relation_shp_liste = DictRelationListeREFparREF({})
         for CODE_custom,dict_decoupREF in self.items():
             dict_relation_shp_liste[CODE_custom] = {}
             for echelle_shp_par_decoupage,shp_decoupREF in dict_decoupREF.items():
@@ -214,11 +214,11 @@ class dictGdfCompletREF(dict):
         return dict_relation_shp_liste
 
     def extraction_dict_relation_shp_liste_a_partir_decoupREF_par_custom(self):
-        class DictListeREFparREF(dict):
+        class DictRelationListeREFparREF(dict):
             @property
             def _constructor(self):
-                return DictListeREFparREF
-        dict_relation_shp_liste = DictListeREFparREF({})
+                return DictRelationListeREFparREF
+        dict_relation_shp_liste = DictRelationListeREFparREF({})
         for CODE_custom,dict_decoupREF in self.items():
             dict_relation_shp_liste[CODE_custom] = {}
             for echelle_shp_par_decoupage,shp_decoupREF in dict_decoupREF.items():

@@ -16,7 +16,7 @@ import pandas as pd
 from io import StringIO
 from geojson_rewind import rewind
 from  geojson import dump
-from datetime import datetime
+import copy
 _default = object()
 
 environment = os.getenv('ENVIRONMENT')
@@ -27,7 +27,6 @@ bucket_back_up = os.getenv('S3_BUCKET_BACK_UP')
 class NDictGdf(dict):
     def __init__(self,dict_custom_maitre=None,liste_echelle_REF=None):
         self.name = "dict_gdf_perso"
-
 
     def __repr__(self):
         return f"nom_gdf : {self.name}"
@@ -157,6 +156,10 @@ class NDictGdf(dict):
     def actualisation_df_info(dict_geom_REF,REF):
         dict_geom_REF['gdf_'+REF].df_info.to_csv('s3://' + bucket_common_files + '/' + dict_geom_REF['gdf_'+REF].path_folder + '/' + "fichier_info_MO_gemapi.csv", index=False)
        
+    def recuperation_gdf_REF(dict_geom_REF,REF):
+        dict_gdf_REF =   copy.deepcopy(dict_geom_REF['gdf_'+REF])
+        return dict_gdf_REF    
+
     
 def remplissage_dictgdf(self,dict_custom_maitre=None,dict_dict_info_REF=None,liste_echelle_REF=_default):
     if liste_echelle_REF is _default:
@@ -184,14 +187,18 @@ def remplissage_dictgdf(self,dict_custom_maitre=None,dict_dict_info_REF=None,lis
 def creation_dict_decoupREF(self,dict_custom_maitre=None):
     def ajout_custom_liste_echelle_REF(self,dict_custom_maitre):
         if dict_custom_maitre!=None:
-            liste_echelle_REF_projet = dict_custom_maitre.liste_echelle_REF_projet + ['custom']
+            if hasattr(dict_custom_maitre,"liste_echelle_REF_projet"):
+                liste_echelle_REF_projet = dict_custom_maitre.liste_echelle_REF_projet + ['custom']
+            if not hasattr(dict_custom_maitre,"liste_echelle_REF_projet"):
+                liste_echelle_REF_projet = [NGdf.echelle_REF_shp for Nom_gdf,NGdf in self.items()]
         if dict_custom_maitre==None:
             liste_echelle_REF_projet = [NGdf.echelle_REF_shp for Nom_gdf,NGdf in self.items()]
         return liste_echelle_REF_projet
     
     def ajout_custom_dict_geom_REF(self,dict_custom_maitre):
         if dict_custom_maitre!=None:
-            self['gdf_custom'] = dict_custom_maitre.gdf_custom
+            if "gdf_custom" in self :
+                self['gdf_custom'] = dict_custom_maitre.gdf_custom
         return self
 
     def hierarchisation_liste_echelle(liste_combinaison_REF):
@@ -247,19 +254,15 @@ def creation_dict_decoupREF(self,dict_custom_maitre=None):
                 ###Regles de tri uniques pour chaque projets
                 if (projet.type_rendu=='tableau' or projet.type_rendu=='carte' or projet.type_rendu=='tableau_DORA_vers_BDD') and (projet.type_donnees=='action' or projet.type_donnees=='toutes_pressions'):
                     #Pour tous projets carto, on ne garde pas les entités qui ont au moins de 5% de la surface dans le final
+                    REF_entite = echelle_shp_par_decoupage[10:].split("_")[0]
+                    REF_index = echelle_shp_par_decoupage[10:].split("_")[1]
                     if shp_decoupREF.type_de_geom=="polygon":
                         shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)]                     
-                    
-                    for echelle_carto_REF in projet.liste_echelle_REF_projet:
-                        REF_entite = echelle_shp_par_decoupage[10:].split("_")[0]
-                        REF_index = echelle_shp_par_decoupage[10:].split("_")[1]
+
                         if REF_entite=='ME' and REF_index=='custom':
                             shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)|(shp_decoupREF.gdf['surface_decoup'+REF_entite]>500000)]
                             shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon','geometry'] = shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon']['geometry'].map(lambda x : extraire_plus_gros_polygon(x))
 
-                    for echelle_carto_REF in projet.liste_echelle_REF_projet:
-                        REF_entite = echelle_shp_par_decoupage[10:].split("_")[0]
-                        REF_index = echelle_shp_par_decoupage[10:].split("_")[1]
                         if (REF_entite=='ME' or REF_entite=='SME') and REF_index=='custom':
                             #Pour les PPG par MO, la ration de surface doit étre de 0.1 (Sauf si une action est bien présente sur le CODE_REF !) et on garde que les plus gros polygon
                             shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)|(shp_decoupREF.gdf['surface_decoup'+REF_entite]>5000000)]
@@ -316,9 +319,20 @@ def creation_dict_decoupREF(self,dict_custom_maitre=None):
 
 def extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_custom_maitre=None,dict_decoupREF=None):
     class DictListeREFparREF(dict):
+        def __init__(self, *args, **kwargs):
+            super(DictListeREFparREF, self).__init__(*args, **kwargs)
+            self.name = "dict_simple_relation"
+
+
+    class DictRelationListeREFparREF(dict):
         def __getitem__(self, key):
+            print(key, file=sys.stderr)
             if key not in self:
-                self[key] = self.create_key(key)
+                print("coucou",file=sys.stderr)
+                REF1 = key.split("_")[2]
+                REF2 = key.split("_")[4]
+                if "dict_liste_" + REF1 + "_par_" + REF2:
+                    self[key] = self.create_key(key)
             return super().__getitem__(key)
         
         def create_key(self,key):
@@ -328,11 +342,12 @@ def extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_custom_maitre=Non
             for k,v in self['dict_liste_' + REF2 +'_par_' + REF1].items():
                 for x in v:
                     dict_temporaire_inverse.setdefault(x,[]).append(k)
+
             dict_temporaire_inverse.REF_maitre = REF1
             dict_temporaire_inverse.REF_noob = REF2
             return dict_temporaire_inverse
 
-    dict_relation_shp_liste = DictListeREFparREF({})
+    dict_relation_shp_liste = DictRelationListeREFparREF({})
     
     for echelle_shp_par_decoupage,shp_decoupREF in dict_decoupREF.items():
         REF1 = shp_decoupREF.echelle_maitre
@@ -400,7 +415,7 @@ def generation_geojson_sur_s3(self):
                     s3r.Object(bucket_common_files, path_csv).put(Body=csv_buffer.getvalue())
                     #Actualisation de la date
                 
-                
+     
 
 
  

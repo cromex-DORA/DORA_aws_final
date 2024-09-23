@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import MapDEPMOgemapi from './MapDEPMOgemapi';
 import FolderList from './FolderList';
 import './FolderContent.css';
-import { fetchMOThunk } from '../features/geojson/geojsonSlice';
+import { fetchMOThunk, fetchPPGThunk, fetchMEThunk } from '../features/geojson/geojsonSlice';
 
 const FolderContent = () => {
     const dispatch = useDispatch();
@@ -19,6 +19,8 @@ const FolderContent = () => {
     // Appelle fetchContent au chargement du composant
     useEffect(() => {
         dispatch(fetchMOThunk());
+        dispatch(fetchPPGThunk());
+        dispatch(fetchMEThunk());
     }, [dispatch]);
 
     // Met à jour les dossiers lorsque geoJsonData change
@@ -112,7 +114,7 @@ const FolderContent = () => {
             </div>
             <div className="map-container">
                 <MapDEPMOgemapi
-                    geoJsonData={geoJsonData}
+                    geoJsonData={geoJsonData} // Envoyer toutes les données GeoJSON sans filtrage
                     setSelectedFolderId={setSelectedFolderId}
                     highlightedFolderId={highlightedFolderId}
                     setHighlightedFolderId={setHighlightedFolderId}
