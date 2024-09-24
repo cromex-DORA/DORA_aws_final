@@ -52,3 +52,24 @@
     grid-row: 2 / 3;    /* Occupe la deuxième rangée */
 }
 
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.breadcrumb-department {
+    cursor: pointer;
+    color: #007bff;
+}
+
+.breadcrumb-separator {
+    margin: 0 5px;
+}
+
+.breadcrumb-folder {
+    color: #333;
+}
+

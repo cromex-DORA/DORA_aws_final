@@ -120,19 +120,9 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
         if (geoJsonLayerRef.current && filteredGeoJsonData) {
             geoJsonLayerRef.current.eachLayer(layer => {
                 const featureId = layer.feature.id;
-                if (highlightedFolderId === featureId) {
-                    layer.setStyle({
-                        weight: 8,
-                        color: '#ff0000',
-                        opacity: 0.8
-                    });
-                } else {
-                    layer.setStyle({
-                        weight: 5,
-                        color: '#0000ff',
-                        opacity: 0.65
-                    });
-                }
+                const isHighlighted = highlightedFolderId === featureId;
+
+                layer.setStyle(style(layer.feature, isHighlighted)); // Utilisation de la fonction style
             });
         }
     }, [highlightedFolderId, filteredGeoJsonData]);
@@ -171,7 +161,7 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
         }
     }, [zoomLevel, filteredGeoJsonData]);
 
-    const onEachFeature = (feature, layer) => {
+     const onEachFeature = (feature, layer) => {
         layer.on({
             click: () => {
                 const bounds = layer.getBounds();
@@ -190,19 +180,11 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
             },
             mouseover: () => {
                 setHighlightedFolderId(feature.id);
-                layer.setStyle({
-                    weight: 8,
-                    color: '#ff0000',
-                    opacity: 0.8
-                });
+                layer.setStyle(style(feature, true)); // Applique le style de surlignage
             },
             mouseout: () => {
                 if (feature.id !== highlightedFolderId) {
-                    layer.setStyle({
-                        weight: 5,
-                        color: '#0000ff',
-                        opacity: 0.65
-                    });
+                    layer.setStyle(style(feature, false)); // Réapplique le style normal
                 }
                 setHighlightedFolderId(null);
             }
@@ -213,6 +195,35 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     if (!initialBounds) {
         return <div>Loading map...</div>;
     }
+
+    const style = (feature, isHighlighted) => {
+        const category = feature.properties['type_REF'];
+
+        if (isHighlighted) {
+            return {
+                color: 'yellow', // Couleur pour le surlignage
+                weight: 4,
+                fillOpacity: 0.6
+            };
+        }
+
+        if (category === 'MO') {
+            return {
+                color: 'gray', // Couleur pour MO
+                weight: 2,
+                fillOpacity: 0.6
+            };
+        } else if (category === 'PPG' || category === 'ME') {
+            return {
+                color: 'blue', // Couleur pour PPG et ME
+                weight: 2,
+                fillOpacity: 0.6
+            };
+        }
+
+        return {};
+    };
+
 
     return (
         <div className="map-container">
@@ -261,13 +272,9 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
                     <GeoJSON
                         key={JSON.stringify(filteredGeoJsonData)}
                         data={filteredGeoJsonData}
+                        style={style} // Assurez-vous que le style est appliqué ici
                         onEachFeature={onEachFeature}
                         ref={geoJsonLayerRef}
-                        style={{
-                            weight: 5,
-                            color: '#0000ff',
-                            opacity: 0.65
-                        }}
                     />
                 )}
                 {selectedBounds && <ZoomToBounds bounds={selectedBounds} />}
