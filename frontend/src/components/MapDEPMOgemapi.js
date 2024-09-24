@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import FiltretypeMO from './FiltretypeMO';
+import FiltretypeSOUSREF from './FiltretypeSOUSREF';
 import TabImportShpModal from './TabImportShpModal';
 import 'leaflet/dist/leaflet.css';
 import './MapDEPMOgemapi.css';
@@ -32,9 +33,9 @@ const MapEvents = ({ setZoomLevel }) => {
 };
 
 const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, setHighlightedFolderId, handleFolderClick }) => {
-    console.log("Essai filtre", geoJsonData); // Ajoute le log ici
-    
+
     const [filter, setFilter] = useState('Syndicat');
+    const [selectedType, setSelectedType] = useState('ME');
     const [filteredGeoJsonData, setFilteredGeoJsonData] = useState(null);
     const [initialBounds, setInitialBounds] = useState(null);
     const [selectedBounds, setSelectedBounds] = useState(null);
@@ -42,6 +43,7 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     const [isModalOpen, setIsModalOpen] = useState(false);
     const mapRef = useRef();
     const geoJsonLayerRef = useRef();
+
 
     // Ajout de l'état pour les catégories PPG et ME
     const [showPPG, setShowPPG] = useState(true); // Afficher PPG par défaut
@@ -91,29 +93,29 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     }, [initialBounds]);
 
     // Effect to filter GeoJSON data when geoJsonData or filter changes
-    useEffect(() => {
-        
-        if (geoJsonData) {
-            const updatedFilteredData = {
-                ...geoJsonData,
-                features: geoJsonData.features.filter(feature => {
-                    const typeMO = feature.properties['TYPE_MO'];
+useEffect(() => {
+    if (geoJsonData) {
+        const updatedFilteredData = {
+            ...geoJsonData,
+            features: geoJsonData.features.filter(feature => {
+                const typeMO = feature.properties['TYPE_MO'];
+                const typeREF = feature.properties['type_REF'];
 
-                    // Filtrer par TYPE_MO (filtre actuel)
-                    const passesFilter = filter ? typeMO === filter : true;
+                // Filtrer par TYPE_MO (filtre actuel)
+                const passesFilter = filter ? typeMO === filter : true;
 
-                    // Filtrer par PPG et ME en fonction des cases à cocher
-                    const isPPG = feature.properties['CATEGORY'] === 'PPG' && showPPG;
-                    const isME = feature.properties['CATEGORY'] === 'ME' && showME;
+                // On s'assure que les MO du type sélectionné sont affichés
+                const isMatchingTypeRef = selectedType ? typeREF === selectedType : true;
 
-                    // Affiche les polygones qui correspondent au filtre ou à PPG/ME cochés
-                    return passesFilter || isPPG || isME;
-                })
-            };
+                // Affiche les polygones qui correspondent au filtre de TYPE_MO 
+                // et inclut les PPG/ME si sélectionnés
+                return passesFilter || (isMatchingTypeRef && (typeREF === 'ME' || typeREF === 'PPG'));
+            })
+        };
 
-            setFilteredGeoJsonData(updatedFilteredData);
-        }
-    }, [filter, geoJsonData, showPPG, showME]);
+        setFilteredGeoJsonData(updatedFilteredData);
+    }
+}, [filter, selectedType, geoJsonData]);
 
     // Update GeoJSON layer style when highlightedFolderId changes
     useEffect(() => {
@@ -141,27 +143,28 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     }, [selectedFolderId, filteredGeoJsonData]);
 
 
-    useEffect(() => {
-        if (geoJsonLayerRef.current && filteredGeoJsonData) {
-            geoJsonLayerRef.current.eachLayer(layer => {
-                const feature = layer.feature;
+useEffect(() => {
+    if (geoJsonLayerRef.current && filteredGeoJsonData) {
+        geoJsonLayerRef.current.eachLayer(layer => {
+            const feature = layer.feature;
 
-                // Supprimez les tooltips existants
-                layer.unbindTooltip();
+            // Supprimez les tooltips existants
+            layer.unbindTooltip();
 
-                // Ajoutez les tooltips uniquement si le zoom est supérieur à 9
-                if (zoomLevel > 8 && feature.properties.ALIAS) {
-                    layer.bindTooltip(feature.properties.ALIAS, {
-                        permanent: true,
-                        direction: "center",
-                        className: "polygon-label" // Style des étiquettes
-                    });
-                }
-            });
-        }
-    }, [zoomLevel, filteredGeoJsonData]);
+            // Ajoutez les tooltips uniquement si le zoom est supérieur à 8 
+            // et si selectedFolderId est null
+            if (zoomLevel > 8 && feature.properties.ALIAS && selectedFolderId === null) {
+                layer.bindTooltip(feature.properties.ALIAS, {
+                    permanent: true,
+                    direction: "center",
+                    className: "polygon-label" // Style des étiquettes
+                });
+            }
+        });
+    }
+}, [zoomLevel, filteredGeoJsonData, selectedFolderId]);
 
-     const onEachFeature = (feature, layer) => {
+    const onEachFeature = (feature, layer) => {
         layer.on({
             click: () => {
                 const bounds = layer.getBounds();
@@ -202,25 +205,34 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
         if (isHighlighted) {
             return {
                 color: 'yellow', // Couleur pour le surlignage
-                weight: 4,
+                weight: 5,
                 fillOpacity: 0.6
             };
         }
 
-        if (category === 'MO') {
+        if (feature.properties['type_REF'] === 'MO') {
             return {
-                color: 'gray', // Couleur pour MO
-                weight: 2,
-                fillOpacity: 0.6
-            };
-        } else if (category === 'PPG' || category === 'ME') {
-            return {
-                color: 'blue', // Couleur pour PPG et ME
-                weight: 2,
-                fillOpacity: 0.6
+                color: 'blue', // Couleur des contours
+                weight: 5, // Épaisseur des contours
+                fillColor: 'rgba(0, 0, 255, 0.1)', // Bleu très transparent pour le remplissage
+                fillOpacity: 0.1, // Transparence du remplissage
+                opacity: 1, // Opacité du contour
             };
         }
-
+        if (feature.properties['type_REF'] === 'PPG') {
+            return {
+                color: 'gray', // Couleur pour PPG et ME
+                weight: 2,
+                fillOpacity: 0.3
+            };
+        }
+        if (feature.properties['type_REF'] === 'ME') {
+            return {
+                color: 'gray', // Couleur pour PPG et ME
+                weight: 2,
+                fillOpacity: 0.3
+            };
+        }
         return {};
     };
 
@@ -228,27 +240,8 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     return (
         <div className="map-container">
             <div className="sidebar">
-                <FiltretypeMO selectedOption={filter} setSelectedOption={setFilter} />
-
-                {/* Légende avec cases à cocher pour PPG et ME */}
-                <div className="legend">
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={showPPG}
-                            onChange={(e) => setShowPPG(e.target.checked)}
-                        />
-                        Afficher PPG
-                    </label>
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={showME}
-                            onChange={(e) => setShowME(e.target.checked)}
-                        />
-                        Afficher ME
-                    </label>
-                </div>
+                <FiltretypeMO selectedOption={filter} setSelectedtypeMO={setFilter} />
+                <FiltretypeSOUSREF selectedOption={selectedType} setSelectedOption={setSelectedType} />
 
                 <Button className="import-button" onClick={openModal}>
                     Importer des polygones manquants
@@ -268,18 +261,44 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
+
+                {/* Rendu des polygones PPG */}
                 {filteredGeoJsonData && (
                     <GeoJSON
-                        key={JSON.stringify(filteredGeoJsonData)}
-                        data={filteredGeoJsonData}
-                        style={style} // Assurez-vous que le style est appliqué ici
+                        key={`ppg-${filteredGeoJsonData.features.length}`} // Utilisation d'une clé unique pour PPG
+                        data={filteredGeoJsonData.features.filter(feature => feature.properties['type_REF'] === 'PPG')}
+                        style={style}
                         onEachFeature={onEachFeature}
                         ref={geoJsonLayerRef}
                     />
                 )}
+
+                {/* Rendu des polygones ME */}
+                {filteredGeoJsonData && (
+                    <GeoJSON
+                        key={`me-${filteredGeoJsonData.features.length}`} // Utilisation d'une clé unique pour ME
+                        data={filteredGeoJsonData.features.filter(feature => feature.properties['type_REF'] === 'ME')}
+                        style={style}
+                        onEachFeature={onEachFeature}
+                        ref={geoJsonLayerRef}
+                    />
+                )}
+
+                {/* Rendu des polygones MO (doit être en dernier pour être au-dessus) */}
+                {filteredGeoJsonData && (
+                    <GeoJSON
+                        key={`mo-${filteredGeoJsonData.features.length}`} // Utilisation d'une clé unique pour MO
+                        data={filteredGeoJsonData.features.filter(feature => feature.properties['type_REF'] === 'MO')}
+                        style={style}
+                        onEachFeature={onEachFeature}
+                        ref={geoJsonLayerRef}
+                    />
+                )}
+
                 {selectedBounds && <ZoomToBounds bounds={selectedBounds} />}
                 <MapEvents setZoomLevel={setZoomLevel} />
             </MapContainer>
+
         </div>
     );
 };

@@ -1,0 +1,18 @@
+.breadcrumb {
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumb-item {
+    padding: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.breadcrumb-item:hover {
+    background-color: #18720f; /* Ajoute un cadre grisé lorsqu'on passe la souris */
+    border-radius: 4px; /* Arrondir les coins du cadre */
+}
+
+.breadcrumb-separator {
+    margin: 0 8px;
+}

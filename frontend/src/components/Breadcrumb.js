@@ -8,11 +8,11 @@ const Breadcrumb = ({ department, selectedFolderId, handleBackClick }) => {
                 onClick={handleBackClick} 
                 style={{ cursor: 'pointer', fontWeight: selectedFolderId ? 'normal' : 'bold' }}
             >
-                {department} {/* Affiche le numéro du département */}
+                Département {department} {/* Affiche "département" suivi du numéro */}
             </span>
             {selectedFolderId && (
                 <>
-                    <span className="breadcrumb-separator"> ➔ </span> {/* Séparateur */}
+                    <span className="breadcrumb-separator"> &gt; </span> {/* Séparateur avec le symbole > */}
                     <span className="breadcrumb-item">{selectedFolderId}</span> {/* Nom du folder sélectionné */}
                 </>
             )}
