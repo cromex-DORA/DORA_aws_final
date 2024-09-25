@@ -15,7 +15,7 @@ class NGdfREF:
     def __init__(self,REF, path=None,type_geom=None):
         self.path = path
         
-        if REF!="custom":
+        if REF!="CUSTOM":
             self.name = path.split("/")[-1]
             self.path_folder = ("/").join(path.split("/")[3:-1])
             self.path_relative = ("/").join(path.split("/")[3:])
@@ -23,7 +23,7 @@ class NGdfREF:
         self.colonne_geometry = "geometry_" + REF
         self.nom_entite_REF = "NOM_" + REF
         self.type_de_geom = type_geom
-        if REF !="custom":
+        if REF !="CUSTOM":
             self._ajout_gdf(path,REF)
             self._scan_file(path)
 
@@ -92,33 +92,33 @@ class NGdfREF:
         return dict_gdf_REF
 
 
-def chercher_gdf_custom(dict_custom_maitre,dict_geom_REF,dict_dict_info_REF):
-    list_tempo_gdf_custom = []
+def chercher_gdf_CUSTOM(dict_CUSTOM_maitre,dict_geom_REF,dict_dict_info_REF):
+    list_tempo_gdf_CUSTOM = []
     list_date = []
-    list_echelle_REF_custom = list(set([v.echelle_REF for k,v in dict_custom_maitre.items()]))
-    for echelle_REF in list_echelle_REF_custom:
-        gdf_custom_echelle_REF = dict_geom_REF['gdf_'+echelle_REF].gdf.loc[dict_geom_REF['gdf_'+echelle_REF].gdf['NOM_'+echelle_REF].isin(list(dict_custom_maitre))]
-        dict_renommage = {'NOM_'+echelle_REF:'NOM_custom','geometry_'+echelle_REF:'geometry_custom'}
-        gdf_custom_echelle_REF['CODE_custom'] = gdf_custom_echelle_REF['CODE_'+echelle_REF]
-        gdf_custom_echelle_REF = gdf_custom_echelle_REF.rename(dict_renommage,axis=1)
-        gdf_custom_echelle_REF = gdf_custom_echelle_REF[list(dict_renommage.values()) + ['CODE_custom','CODE_'+echelle_REF]]
-        gdf_custom_echelle_REF['echelle_REF'] = echelle_REF
+    list_echelle_REF_CUSTOM = list(set([v.echelle_REF for k,v in dict_CUSTOM_maitre.items()]))
+    for echelle_REF in list_echelle_REF_CUSTOM:
+        gdf_CUSTOM_echelle_REF = dict_geom_REF['gdf_'+echelle_REF].gdf.loc[dict_geom_REF['gdf_'+echelle_REF].gdf['NOM_'+echelle_REF].isin(list(dict_CUSTOM_maitre))]
+        dict_renommage = {'NOM_'+echelle_REF:'NOM_CUSTOM','geometry_'+echelle_REF:'geometry_CUSTOM'}
+        gdf_CUSTOM_echelle_REF['CODE_CUSTOM'] = gdf_CUSTOM_echelle_REF['CODE_'+echelle_REF]
+        gdf_CUSTOM_echelle_REF = gdf_CUSTOM_echelle_REF.rename(dict_renommage,axis=1)
+        gdf_CUSTOM_echelle_REF = gdf_CUSTOM_echelle_REF[list(dict_renommage.values()) + ['CODE_CUSTOM','CODE_'+echelle_REF]]
+        gdf_CUSTOM_echelle_REF['echelle_REF'] = echelle_REF
         if "ALIAS" in list(dict_dict_info_REF['df_info_'+echelle_REF]):
-            df_info_REF = dict_dict_info_REF['df_info_'+echelle_REF].rename({"CODE_"+echelle_REF:"CODE_custom"},axis=1)
-            gdf_custom_echelle_REF = pd.merge(gdf_custom_echelle_REF,df_info_REF[['CODE_custom',"ALIAS"]],on="CODE_custom",how='left')  
-            gdf_custom_echelle_REF.loc[gdf_custom_echelle_REF['ALIAS'].isnull(),"ALIAS"] = gdf_custom_echelle_REF['NOM_custom'] 
-        if "ALIAS" not in list(gdf_custom_echelle_REF):
-            gdf_custom_echelle_REF["ALIAS"] = gdf_custom_echelle_REF["NOM_custom"]
-        if len(gdf_custom_echelle_REF)>0:
-            list_tempo_gdf_custom.append(gdf_custom_echelle_REF)
+            df_info_REF = dict_dict_info_REF['df_info_'+echelle_REF].rename({"CODE_"+echelle_REF:"CODE_CUSTOM"},axis=1)
+            gdf_CUSTOM_echelle_REF = pd.merge(gdf_CUSTOM_echelle_REF,df_info_REF[['CODE_CUSTOM',"ALIAS"]],on="CODE_CUSTOM",how='left')  
+            gdf_CUSTOM_echelle_REF.loc[gdf_CUSTOM_echelle_REF['ALIAS'].isnull(),"ALIAS"] = gdf_CUSTOM_echelle_REF['NOM_CUSTOM'] 
+        if "ALIAS" not in list(gdf_CUSTOM_echelle_REF):
+            gdf_CUSTOM_echelle_REF["ALIAS"] = gdf_CUSTOM_echelle_REF["NOM_CUSTOM"]
+        if len(gdf_CUSTOM_echelle_REF)>0:
+            list_tempo_gdf_CUSTOM.append(gdf_CUSTOM_echelle_REF)
             #list_date.append(dict_geom_REF['gdf_'+echelle_REF].date_modif)
-    if len(list_tempo_gdf_custom)>0:
-        gdf_REF_total = pd.concat(list_tempo_gdf_custom)
-    if len(list_tempo_gdf_custom)==0:
-        print("Je n'ai pas trouvé d'entité avec les noms suivants dans mes BDD : " + list(dict_custom_maitre))
+    if len(list_tempo_gdf_CUSTOM)>0:
+        gdf_REF_total = pd.concat(list_tempo_gdf_CUSTOM)
+    if len(list_tempo_gdf_CUSTOM)==0:
+        print("Je n'ai pas trouvé d'entité avec les noms suivants dans mes BDD : " + list(dict_CUSTOM_maitre))
         exit()
     gdf_REF_total = gdf_REF_total.reset_index(drop=True)
-    gdf_REF = NGdfREF("custom",path=None,type_geom="polygon")
+    gdf_REF = NGdfREF("CUSTOM",path=None,type_geom="polygon")
     gdf_REF.gdf = gdf_REF_total
     #gdf_REF.date_modif = sorted(list_date)[0]
     return gdf_REF

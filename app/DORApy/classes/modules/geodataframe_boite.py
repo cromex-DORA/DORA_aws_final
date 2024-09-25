@@ -9,7 +9,7 @@ dict_config_espace,dict_config_police = config_DORA.creation_dicts_config()
 df_csv_x_icone_bloc_icone,df_csv_y_icone_bloc_icone = config_DORA.import_csv_placement_icone_bloc_icone()
 
 
-def empilement_paysage(self,type_placement,dict_info_custom):
+def empilement_paysage(self,type_placement,dict_info_CUSTOM):
     #empilement paysage
     liste_orientation = ["B","H"]
     for orientation in liste_orientation:
@@ -33,10 +33,10 @@ def empilement_paysage(self,type_placement,dict_info_custom):
                 liste_x_apres_empilement[0] = liste_x_REF[0]
                 liste_numero_ensemble_bloc[0] = 1
             if numero_REF>0:
-                bas_boite_precedente = liste_x_apres_empilement[numero_REF-1]-liste_largeur[numero_REF-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_custom['echelle']]
+                bas_boite_precedente = liste_x_apres_empilement[numero_REF-1]-liste_largeur[numero_REF-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_CUSTOM['echelle']]
                 haut_boite_actuel = liste_x_REF[numero_REF]+liste_largeur[numero_REF]/2
                 if bas_boite_precedente<haut_boite_actuel:
-                    liste_x_apres_empilement[numero_REF] = liste_x_apres_empilement[numero_REF-1]-liste_largeur[numero_REF-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_custom['echelle']]-liste_largeur[numero_REF]/2
+                    liste_x_apres_empilement[numero_REF] = liste_x_apres_empilement[numero_REF-1]-liste_largeur[numero_REF-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_CUSTOM['echelle']]-liste_largeur[numero_REF]/2
                     liste_numero_ensemble_bloc[numero_REF] = liste_numero_ensemble_bloc[numero_REF-1]
                 if bas_boite_precedente>haut_boite_actuel:
                     liste_x_apres_empilement[numero_REF] = liste_x_REF[numero_REF]
@@ -45,17 +45,17 @@ def empilement_paysage(self,type_placement,dict_info_custom):
         #Replacement : On tape par en dessous pour faire remonter les boites
         #Si on est sur le premier algo de traitment de placement des boites
         if type_placement.split(" ")[0] =="placement_boite_classique":
-            limite_droite_boite = dict_info_custom["max_x_custom"]
-            limite_gauche_boite = dict_info_custom["min_x_custom"]
+            limite_droite_boite = dict_info_CUSTOM["max_x_CUSTOM"]
+            limite_gauche_boite = dict_info_CUSTOM["min_x_CUSTOM"]
         if type_placement.split(" ")[0] =="placement_boite_extremite_qui_depassent":
             if orientation =="B":
-                limite_droite_boite = dict_info_custom["limite_x_droite_boite_basse"]
-                limite_gauche_boite = dict_info_custom["limite_x_gauche_boite_basse"]
+                limite_droite_boite = dict_info_CUSTOM["limite_x_droite_boite_basse"]
+                limite_gauche_boite = dict_info_CUSTOM["limite_x_gauche_boite_basse"]
             if orientation =="H":
-                limite_droite_boite = dict_info_custom["limite_x_droite_boite_haut"]
-                limite_gauche_boite = dict_info_custom["limite_x_gauche_boite_haut"]
+                limite_droite_boite = dict_info_CUSTOM["limite_x_droite_boite_haut"]
+                limite_gauche_boite = dict_info_CUSTOM["limite_x_gauche_boite_haut"]
         #Si un seul bloc, on regroupe tout
-        largeur_totale_ensemble_boite = sum(liste_largeur) + (len(liste_largeur)-1)*dict_config_espace['espace_sous_boite_complete'][dict_info_custom['echelle']]
+        largeur_totale_ensemble_boite = sum(liste_largeur) + (len(liste_largeur)-1)*dict_config_espace['espace_sous_boite_complete'][dict_info_CUSTOM['echelle']]
         if len(liste_REF)==1:
             liste_x_apres_empilement = liste_x_REF
         if largeur_totale_ensemble_boite>(limite_droite_boite-limite_gauche_boite):
@@ -82,7 +82,7 @@ def empilement_paysage(self,type_placement,dict_info_custom):
                         liste_ensemble_boites_actuelles_largeur.append(liste_largeur[numero_REF])
                         liste_ensemble_boites_actuelles_x_apres_empilement.append(liste_x_apres_empilement[numero_REF])
                         liste_ensemble_boites_actuelles_x_REF.append(liste_x_REF[numero_REF])
-                largeur_bloc_actuel = sum(liste_ensemble_boites_actuelles_largeur)+(len(liste_ensemble_boites_actuelles_largeur)-1)*dict_config_espace['espace_sous_boite_complete'][dict_info_custom['echelle']]
+                largeur_bloc_actuel = sum(liste_ensemble_boites_actuelles_largeur)+(len(liste_ensemble_boites_actuelles_largeur)-1)*dict_config_espace['espace_sous_boite_complete'][dict_info_CUSTOM['echelle']]
                 centre_x_bloc_actuel = ((liste_ensemble_boites_actuelles_x_apres_empilement[0]+liste_ensemble_boites_actuelles_largeur[0]/2)+(liste_ensemble_boites_actuelles_x_REF[-1]-liste_ensemble_boites_actuelles_largeur[-1]/2))/2
                 x_droite_necessaire_sur_ensemble_de_bloc_actuel = centre_x_bloc_actuel + largeur_bloc_actuel/2
                 x_droite_derniere_boite_bloc_actuel = liste_ensemble_boites_actuelles_x_apres_empilement[0] + liste_ensemble_boites_actuelles_largeur[0]/2
@@ -106,7 +106,7 @@ def empilement_paysage(self,type_placement,dict_info_custom):
                         if numero_ensemble_boite_actuel==1:
                             limite_droite_boites_portraits = limite_droite_boite
                         if numero_ensemble_boite_actuel>1:
-                            limite_droite_boites_portraits = liste_ensemble_boites_precedentes_x_apres_empilement[-1]-liste_ensemble_boites_precedentes_largeur[-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_custom['echelle']]
+                            limite_droite_boites_portraits = liste_ensemble_boites_precedentes_x_apres_empilement[-1]-liste_ensemble_boites_precedentes_largeur[-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_CUSTOM['echelle']]
                         if x_droite_necessaire_sur_ensemble_de_bloc_actuel<limite_droite_boites_portraits:
                             decalage_boite_vers_droite = x_droite_necessaire_sur_ensemble_de_bloc_actuel - x_droite_derniere_boite_bloc_actuel
                             liste_ensemble_boites_actuelles_x_apres_empilement = [x_apres_empilement + decalage_boite_vers_droite for x_apres_empilement in liste_ensemble_boites_actuelles_x_apres_empilement]
@@ -126,7 +126,7 @@ def empilement_paysage(self,type_placement,dict_info_custom):
         self=pd.concat([self,gdf_filtre])
     return self
 
-def empilement_portrait(self,type_placement,dict_info_custom):
+def empilement_portrait(self,type_placement,dict_info_CUSTOM):
     #empilement portrait
     liste_orientation = ["G","D"]
     for orientation in liste_orientation:
@@ -150,10 +150,10 @@ def empilement_portrait(self,type_placement,dict_info_custom):
                 liste_y_apres_empilement[0] = liste_y_REF[0]
                 liste_numero_ensemble_bloc[0] = 1
             if numero_REF>0:
-                bas_boite_precedente = liste_y_apres_empilement[numero_REF-1]-liste_hauteur[numero_REF-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_custom['echelle']]
+                bas_boite_precedente = liste_y_apres_empilement[numero_REF-1]-liste_hauteur[numero_REF-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_CUSTOM['echelle']]
                 haut_boite_actuel = liste_y_REF[numero_REF]+liste_hauteur[numero_REF]/2
                 if bas_boite_precedente<haut_boite_actuel:
-                    liste_y_apres_empilement[numero_REF] = liste_y_apres_empilement[numero_REF-1]-liste_hauteur[numero_REF-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_custom['echelle']]-liste_hauteur[numero_REF]/2
+                    liste_y_apres_empilement[numero_REF] = liste_y_apres_empilement[numero_REF-1]-liste_hauteur[numero_REF-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_CUSTOM['echelle']]-liste_hauteur[numero_REF]/2
                     liste_numero_ensemble_bloc[numero_REF] = liste_numero_ensemble_bloc[numero_REF-1]
                 if bas_boite_precedente>haut_boite_actuel:
                     liste_y_apres_empilement[numero_REF] = liste_y_REF[numero_REF]
@@ -162,18 +162,18 @@ def empilement_portrait(self,type_placement,dict_info_custom):
         #Replacement : On tape par en dessous pour faire remonter les boites
         #Si on est sur le premier algo de traitment de placement des boites
         if type_placement.split(" ")[0] =="placement_boite_classique":
-            limite_haute_boite = dict_info_custom["max_y_custom"]
-            limite_basse_boite = dict_info_custom["min_y_custom"]
+            limite_haute_boite = dict_info_CUSTOM["max_y_CUSTOM"]
+            limite_basse_boite = dict_info_CUSTOM["min_y_CUSTOM"]
         if type_placement.split(" ")[0] =="placement_boite_extremite_qui_depassent":
             if orientation =="G":
-                limite_haute_boite = dict_info_custom["limite_y_haute_boite_gauche"]
-                limite_basse_boite = dict_info_custom["limite_y_basse_boite_gauche"]
+                limite_haute_boite = dict_info_CUSTOM["limite_y_haute_boite_gauche"]
+                limite_basse_boite = dict_info_CUSTOM["limite_y_basse_boite_gauche"]
             if orientation =="D":
-                limite_haute_boite = dict_info_custom["limite_y_haute_boite_droite"]
-                limite_basse_boite = dict_info_custom["limite_y_basse_boite_droite"]
+                limite_haute_boite = dict_info_CUSTOM["limite_y_haute_boite_droite"]
+                limite_basse_boite = dict_info_CUSTOM["limite_y_basse_boite_droite"]
         #Si une seule boite, on touche pas
         #Si un seul bloc, on regroupe tout
-        hauteur_totale_ensemble_boite = sum(liste_hauteur) + (len(liste_hauteur)-1)*dict_config_espace['espace_sous_boite_complete'][dict_info_custom['echelle']]
+        hauteur_totale_ensemble_boite = sum(liste_hauteur) + (len(liste_hauteur)-1)*dict_config_espace['espace_sous_boite_complete'][dict_info_CUSTOM['echelle']]
         if len(liste_REF)==1:
             liste_y_apres_empilement = liste_y_REF
         if hauteur_totale_ensemble_boite>(limite_haute_boite-limite_basse_boite):
@@ -200,7 +200,7 @@ def empilement_portrait(self,type_placement,dict_info_custom):
                         liste_ensemble_boites_actuelles_hauteur.append(liste_hauteur[numero_REF])
                         liste_ensemble_boites_actuelles_y_apres_empilement.append(liste_y_apres_empilement[numero_REF])
                         liste_ensemble_boites_actuelles_y_REF.append(liste_y_REF[numero_REF])
-                hauteur_bloc_actuel = sum(liste_ensemble_boites_actuelles_hauteur)+(len(liste_ensemble_boites_actuelles_hauteur)-1)*dict_config_espace['espace_sous_boite_complete'][dict_info_custom['echelle']]
+                hauteur_bloc_actuel = sum(liste_ensemble_boites_actuelles_hauteur)+(len(liste_ensemble_boites_actuelles_hauteur)-1)*dict_config_espace['espace_sous_boite_complete'][dict_info_CUSTOM['echelle']]
                 centre_y_bloc_actuel = ((liste_ensemble_boites_actuelles_y_apres_empilement[0]+liste_ensemble_boites_actuelles_hauteur[0]/2)+(liste_ensemble_boites_actuelles_y_REF[-1]-liste_ensemble_boites_actuelles_hauteur[-1]/2))/2
                 y_haut_necessaire_sur_ensemble_de_bloc_actuel = centre_y_bloc_actuel + hauteur_bloc_actuel/2
                 y_haut_derniere_boite_bloc_actuel = liste_ensemble_boites_actuelles_y_apres_empilement[0] + liste_ensemble_boites_actuelles_hauteur[0]/2
@@ -222,7 +222,7 @@ def empilement_portrait(self,type_placement,dict_info_custom):
                         if numero_ensemble_boite_actuel==1:
                             limite_haut_boites_paysages = limite_haute_boite
                         if numero_ensemble_boite_actuel>1:
-                            limite_haut_boites_paysages = liste_ensemble_boites_precedentes_y_apres_empilement[-1]-liste_ensemble_boites_precedentes_hauteur[-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_custom['echelle']]
+                            limite_haut_boites_paysages = liste_ensemble_boites_precedentes_y_apres_empilement[-1]-liste_ensemble_boites_precedentes_hauteur[-1]/2-dict_config_espace['espace_sous_boite_complete'][dict_info_CUSTOM['echelle']]
                         if y_haut_necessaire_sur_ensemble_de_bloc_actuel<limite_haut_boites_paysages:
                             decalage_boite_vers_haut = y_haut_necessaire_sur_ensemble_de_bloc_actuel - y_haut_derniere_boite_bloc_actuel
                             liste_ensemble_boites_actuelles_y_apres_empilement = [y_apres_empilement + decalage_boite_vers_haut for y_apres_empilement in liste_ensemble_boites_actuelles_y_apres_empilement]

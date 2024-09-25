@@ -8,7 +8,7 @@ from app.DORApy.classes.modules import BVG
 #####################################################################
 #Classe (man, top of the pop)
 #####################################################################
-def creation_fichier_test(liste_NOM_custom):
+def creation_fichier_test(liste_NOM_CUSTOM):
     shp = BVG.import_shp_BVG()
     return shp
 

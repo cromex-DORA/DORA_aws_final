@@ -25,7 +25,7 @@ bucket_common_files = os.getenv('S3_BUCKET_COMMON_FILES')
 bucket_back_up = os.getenv('S3_BUCKET_BACK_UP')
 
 class NDictGdf(dict):
-    def __init__(self,dict_custom_maitre=None,liste_echelle_REF=None):
+    def __init__(self,dict_CUSTOM_maitre=None,liste_echelle_REF=None):
         self.name = "dict_gdf_perso"
 
     def __repr__(self):
@@ -159,20 +159,27 @@ class NDictGdf(dict):
     def recuperation_gdf_REF(dict_geom_REF,REF):
         dict_gdf_REF =   copy.deepcopy(dict_geom_REF['gdf_'+REF])
         return dict_gdf_REF    
+    
+    def ajouter_gdf_CUSTOM(gdf_CUSTOM):
+        return gdf_CUSTOM
+        
 
     
-def remplissage_dictgdf(self,dict_custom_maitre=None,dict_dict_info_REF=None,liste_echelle_REF=_default):
+def remplissage_dictgdf(self,dict_CUSTOM_maitre=None,dict_dict_info_REF=None,liste_echelle_REF=_default,TYPE_REF=None):
     if liste_echelle_REF is _default:
         liste_echelle_REF = ['MO','PPG','ME','SME','BVG','SAGE']
     if liste_echelle_REF is not _default:     
         liste_gdf_deja_presents = [v.echelle_REF_shp for k,v in self.items()]
     
-    if dict_custom_maitre!=None:
+    if dict_CUSTOM_maitre!=None:
         liste_echelle_REF = []
-        if hasattr(dict_custom_maitre,"liste_echelle_shp_custom_a_check"):
-            liste_echelle_REF.extend(dict_custom_maitre.liste_echelle_shp_custom_a_check)
-        if hasattr(dict_custom_maitre,"liste_echelle_REF_projet"):
-            liste_echelle_REF.extend(dict_custom_maitre.liste_echelle_REF_projet)                
+        if hasattr(dict_CUSTOM_maitre,"liste_echelle_shp_CUSTOM_a_check"):
+            if TYPE_REF==None:
+                liste_echelle_REF.extend(dict_CUSTOM_maitre.liste_echelle_shp_CUSTOM_a_check)
+            if TYPE_REF!=None:
+                liste_echelle_REF.extend(TYPE_REF)
+        if hasattr(dict_CUSTOM_maitre,"liste_echelle_REF_projet"):
+            liste_echelle_REF.extend(dict_CUSTOM_maitre.liste_echelle_REF_projet)                
         liste_echelle_REF = list(set(liste_echelle_REF))
 
     for REF in liste_echelle_REF:
@@ -183,30 +190,34 @@ def remplissage_dictgdf(self,dict_custom_maitre=None,dict_dict_info_REF=None,lis
                     self['gdf_'+REF].df_info = dict_dict_info_REF['df_info_'+REF]
     return self
 
+def creation_NGdfCustom(self,dict_CUSTOM_maitre):
+    REF = "CUSTOM"
+    self['gdf_CUSTOM'] = NDictGdf({})
+    self['gdf_CUSTOM'].gdf = dict_CUSTOM_maitre.gdf_CUSTOM
+    self['gdf_CUSTOM'].echelle_REF_shp = REF
+    self['gdf_CUSTOM'].nom_entite_REF = "NOM_"+REF
+    self['gdf_CUSTOM'].colonne_geometry = 'geometry_'+REF
+    self['gdf_CUSTOM'].type_de_geom = 'polygon'
+    return self
 
-def creation_dict_decoupREF(self,dict_custom_maitre=None):
-    def ajout_custom_liste_echelle_REF(self,dict_custom_maitre):
-        if dict_custom_maitre!=None:
-            if hasattr(dict_custom_maitre,"liste_echelle_REF_projet"):
-                liste_echelle_REF_projet = dict_custom_maitre.liste_echelle_REF_projet + ['custom']
-            if not hasattr(dict_custom_maitre,"liste_echelle_REF_projet"):
+
+def creation_dict_decoupREF(self,dict_CUSTOM_maitre=None):
+    def ajout_CUSTOM_liste_echelle_REF(self,dict_CUSTOM_maitre):
+        if dict_CUSTOM_maitre!=None:
+            if hasattr(dict_CUSTOM_maitre,"liste_echelle_REF_projet"):
+                liste_echelle_REF_projet = dict_CUSTOM_maitre.liste_echelle_REF_projet + ['CUSTOM']
+            if not hasattr(dict_CUSTOM_maitre,"liste_echelle_REF_projet"):
                 liste_echelle_REF_projet = [NGdf.echelle_REF_shp for Nom_gdf,NGdf in self.items()]
-        if dict_custom_maitre==None:
+        if dict_CUSTOM_maitre==None:
             liste_echelle_REF_projet = [NGdf.echelle_REF_shp for Nom_gdf,NGdf in self.items()]
         return liste_echelle_REF_projet
     
-    def ajout_custom_dict_geom_REF(self,dict_custom_maitre):
-        if dict_custom_maitre!=None:
-            if "gdf_custom" in self :
-                self['gdf_custom'] = dict_custom_maitre.gdf_custom
-        return self
-
     def suppression_CE_ME(liste_combinaison_REF):
         liste_combinaison_REF = [x for x in liste_combinaison_REF if x!="CE_ME"]
         return liste_combinaison_REF
 
     def hierarchisation_liste_echelle(liste_combinaison_REF):
-        list_hierarchie_shp_hydro = ['custom','DEP','CT','EPTB','SAGE','MO','PPG','BVG','ME','SME','ROE',"CE_ME"]
+        list_hierarchie_shp_hydro = ['CUSTOM','DEP','CT','EPTB','SAGE','MO','PPG','BVG','ME','SME','ROE',"CE_ME"]
         dict_hierarchie_hydro = {}
         for numero_hierarchie,echelle_shp in enumerate(list_hierarchie_shp_hydro):
             dict_hierarchie_hydro[echelle_shp] = numero_hierarchie
@@ -215,12 +226,12 @@ def creation_dict_decoupREF(self,dict_custom_maitre=None):
         liste_combinaison_REF = list(dict_tempo_shp)
         return liste_combinaison_REF
 
-    def decoupage_entite_par_entite(self,liste_combinaison_REF,dict_custom_maitre=None):
+    def decoupage_entite_par_entite(self,liste_combinaison_REF,dict_CUSTOM_maitre=None):
         dict_geomREF_decoupREF = {}
         for [REF1,REF2] in liste_combinaison_REF:
             gdf_REF1 = self['gdf_' + REF1]
             gdf_REF2 = self['gdf_' + REF2]
-            dict_geomREF_decoupREF['gdf_decoup' + REF2 +'_' + REF1] = creation_decoupREF(gdf_REF1,gdf_REF2,REF1,REF2,dict_custom_maitre)
+            dict_geomREF_decoupREF['gdf_decoup' + REF2 +'_' + REF1] = creation_decoupREF(gdf_REF1,gdf_REF2,REF1,REF2,dict_CUSTOM_maitre)
             '''
             if len(dict_geomREF_decoupREF['gdf_decoup' + REF2 +'_' + REF1])>0:
                 dict_tempo_pour_copie['gdf_decoup' + REF2 +'_' + REF1] = copy.deepcopy(dict_geomREF_decoupREF['gdf_decoup' + REF2 +'_' + REF1])
@@ -263,15 +274,15 @@ def creation_dict_decoupREF(self,dict_custom_maitre=None):
                     if shp_decoupREF.type_de_geom=="polygon":
                         shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)]                     
 
-                        if REF_entite=='ME' and REF_index=='custom':
+                        if REF_entite=='ME' and REF_index=='CUSTOM':
                             shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)|(shp_decoupREF.gdf['surface_decoup'+REF_entite]>500000)]
                             shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon','geometry'] = shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon']['geometry'].map(lambda x : extraire_plus_gros_polygon(x))
 
-                        if (REF_entite=='ME' or REF_entite=='SME') and REF_index=='custom':
+                        if (REF_entite=='ME' or REF_entite=='SME') and REF_index=='CUSTOM':
                             #Pour les PPG par MO, la ration de surface doit étre de 0.1 (Sauf si une action est bien présente sur le CODE_REF !) et on garde que les plus gros polygon
                             shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)|(shp_decoupREF.gdf['surface_decoup'+REF_entite]>5000000)]
                             shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon','geometry'] = shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon']['geometry'].map(lambda x : extraire_plus_gros_polygon(x))
-                        if REF_entite=='PPG' and REF_index=='custom':
+                        if REF_entite=='PPG' and REF_index=='CUSTOM':
                             #Pour les PPG par MO, la ration de surface doit étre de 0.5 (Sauf si une action est bien présente sur le CODE_REF !) et on garde que les plus gros polygon
                             shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.5)|(shp_decoupREF.gdf['surface_decoup'+REF_entite]>20000000)]
                             shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon','geometry'] = shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon']['geometry'].map(lambda x : extraire_plus_gros_polygon(x))
@@ -288,7 +299,7 @@ def creation_dict_decoupREF(self,dict_custom_maitre=None):
                 if REF_entite=='SAGE' and REF_index=='MO':
                     shp_decoupREF.gdf = shp_decoupREF.gdf.loc[shp_decoupREF.gdf['ratio_surf']>0.9]
                 #Pour les PPG par MO, la ration de surface doit étre de 0.3 et on garde que les plus gros polygon
-                if REF_entite=='PPG' and REF_index=='custom':
+                if REF_entite=='PPG' and REF_index=='CUSTOM':
                     if len(shp_decoupREF.gdf)>0:
                         shp_decoupREF.gdf = shp_decoupREF.gdf.loc[shp_decoupREF.gdf['ratio_surf']>0.3]
                         def extraire_plus_gros_polygon(multipolygon):
@@ -297,7 +308,7 @@ def creation_dict_decoupREF(self,dict_custom_maitre=None):
                             multipolygon =  MultiPolygon(list(multipolygon))
                             return multipolygon
                         shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon','geometry'] = shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon']['geometry'].map(lambda x : extraire_plus_gros_polygon(x))
-                if REF_entite=='ME' and (REF_index=='custom' or REF_index=='BVG' or REF_index=='PPG'):
+                if REF_entite=='ME' and (REF_index=='CUSTOM' or REF_index=='BVG' or REF_index=='PPG'):
                     shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.3)|(shp_decoupREF.gdf['surface_decoup'+REF_entite]>50000000)]
         return self
 
@@ -310,19 +321,18 @@ def creation_dict_decoupREF(self,dict_custom_maitre=None):
                 shp_decoupREF.gdf = shp_decoupREF.gdf.loc[~shp_decoupREF.gdf["CODE_"+REF_index].isnull()]
         return self
     
-    liste_echelle_REF_projet = ajout_custom_liste_echelle_REF(self,dict_custom_maitre)
-    self = ajout_custom_dict_geom_REF(self,dict_custom_maitre)
+    liste_echelle_REF_projet = ajout_CUSTOM_liste_echelle_REF(self,dict_CUSTOM_maitre)
     #liste_combinaison_REF = suppression_CE_ME(liste_echelle_REF_projet)
     liste_combinaison_REF = hierarchisation_liste_echelle(liste_echelle_REF_projet)
     liste_combinaison_REF = list(itertools.combinations(liste_combinaison_REF, 2))
     liste_combinaison_REF = [list(x) for x in liste_combinaison_REF]
-    dict_geomREF_decoupREF = decoupage_entite_par_entite(self,liste_combinaison_REF,dict_custom_maitre)
-    dict_geomREF_decoupREF = regle_tri_dict_decoupREF(dict_geomREF_decoupREF,dict_custom_maitre)
-    #dict_geomREF_decoupREF = dictGdfCompletREF.suppression_entite_hors_des_custom(dict_geomREF_decoupREF,dict_custom_maitre)
+    dict_geomREF_decoupREF = decoupage_entite_par_entite(self,liste_combinaison_REF,dict_CUSTOM_maitre)
+    dict_geomREF_decoupREF = regle_tri_dict_decoupREF(dict_geomREF_decoupREF,dict_CUSTOM_maitre)
+    #dict_geomREF_decoupREF = dictGdfCompletREF.suppression_entite_hors_des_CUSTOM(dict_geomREF_decoupREF,dict_CUSTOM_maitre)
     dict_geomREF_decoupREF = suppression_CODE_REF_vide(dict_geomREF_decoupREF)
     return dict_geomREF_decoupREF
 
-def extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_custom_maitre=None,dict_decoupREF=None):
+def extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_CUSTOM_maitre=None,dict_decoupREF=None):
     class DictListeREFparREF(dict):
         def __init__(self, *args, **kwargs):
             super(DictListeREFparREF, self).__init__(*args, **kwargs)
@@ -363,13 +373,13 @@ def extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_custom_maitre=Non
         dict_relation_shp_liste['dict_liste_' + REF1 +'_par_' + REF2].REF_maitre = REF2
         dict_relation_shp_liste['dict_liste_' + REF1 +'_par_' + REF2].REF_noob = REF1
 
-    if dict_custom_maitre!=None:
-        list_CODE_custom = [v.CODE_custom for k,v in dict_custom_maitre.items()]
+    if dict_CUSTOM_maitre!=None:
+        list_CODE_CUSTOM = [v.CODE_CUSTOM for k,v in dict_CUSTOM_maitre.items()]
     for nom_dict_relation,dict_relation_REF1_REF2 in dict_relation_shp_liste.items():
-        if nom_dict_relation.endswith("custom"):
-            for CODE_custom in list_CODE_custom:
-                if CODE_custom not in dict_relation_REF1_REF2:
-                    dict_relation_REF1_REF2[CODE_custom] = []
+        if nom_dict_relation.endswith("CUSTOM"):
+            for CODE_CUSTOM in list_CODE_CUSTOM:
+                if CODE_CUSTOM not in dict_relation_REF1_REF2:
+                    dict_relation_REF1_REF2[CODE_CUSTOM] = []
     return dict_relation_shp_liste
 
 def generation_geojson_sur_s3(self):

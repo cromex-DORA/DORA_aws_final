@@ -11,7 +11,7 @@ environment = os.getenv('ENVIRONMENT')
 #aws
 ################################################
 bucket_files_common = os.getenv('S3_BUCKET_COMMON_FILES')
-bucket_files_custom = os.getenv('S3_BUCKET_USERS_FILES')
+bucket_files_CUSTOM = os.getenv('S3_BUCKET_USERS_FILES')
 
 s3_region = os.getenv('S3_UPLOADS_REGION')
 s3_access_key = os.getenv('S3_UPLOADS_ACCESS_KEY')
@@ -46,8 +46,8 @@ def conv_s3_obj_vers_python_obj(type_bucket,file_name):
     file_name = file_name.replace("\\","/")
     if type_bucket == "config":
         nom_bucket = bucket_files_common
-    if type_bucket == "custom":
-        nom_bucket = bucket_files_custom
+    if type_bucket == "CUSTOM":
+        nom_bucket = bucket_files_CUSTOM
     csv_obj = s3.get_object(Bucket=nom_bucket,Key=file_name)
     if file_name.split(".")[-1]=="csv":
         csv_content = csv_obj['Body'].read().decode('utf-8')
@@ -76,8 +76,8 @@ def upload_file_vers_s3(type_bucket,file,path):
 
     if type_bucket == "config":
         nom_bucket = bucket_files_common
-    if type_bucket == "custom":
-        nom_bucket = bucket_files_custom
+    if type_bucket == "CUSTOM":
+        nom_bucket = bucket_files_CUSTOM
     extension = os.path.splitext(path)[1][1:]
     if extension == "xlsx":
         upload_workbook(file, nom_bucket, path)
@@ -85,8 +85,8 @@ def upload_file_vers_s3(type_bucket,file,path):
 def download_file_from_s3(type_bucket,file_key):
     if type_bucket == "config":
         nom_bucket = bucket_files_common
-    if type_bucket == "custom":
-        nom_bucket = bucket_files_custom   
+    if type_bucket == "CUSTOM":
+        nom_bucket = bucket_files_CUSTOM   
     complet_path = os.path.join("MO_gemapi",file_key)
     url = s3.generate_presigned_url(
         'get_object',

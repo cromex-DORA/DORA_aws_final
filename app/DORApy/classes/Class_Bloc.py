@@ -6,7 +6,7 @@ import textwrap
 import numpy as np
 import copy
 
-from app.DORApy.classes.modules import texte,custom,lignes_multiples
+from app.DORApy.classes.modules import texte,CUSTOM,lignes_multiples
 from app.DORApy.classes.modules import config_DORA
 
 
@@ -24,7 +24,7 @@ class Bloc:
     ####################################################
     #bloc globaux
     ####################################################
-    def conversion_hauteur_largeur_bloc_to_boite_complete(self,dict_dict_info_custom):
+    def conversion_hauteur_largeur_bloc_to_boite_complete(self,dict_dict_info_CUSTOM):
         self.df = self.df.rename({'hauteur_' + self.type + '_' + self.sous_type:'hauteur_boite_complete','largeur_' + self.type + '_' + self.sous_type:'largeur_boite_complete'},axis=1)
         return self
 
@@ -47,14 +47,14 @@ class Bloc:
 
 
     def conversion_hauteur_largeur_bloc_texte_simple_to_boite_complete(self):
-        for custom in self:
-            self[custom]['hauteur_boite_complete_portrait'] = self[custom]['hauteur_' + self.type + '_' + self.sous_type]
-            self[custom]['largeur_boite_complete_portrait'] = self[custom]['largeur_' + self.type + '_' + self.sous_type]
-            self[custom]['hauteur_boite_complete_paysage'] = self[custom]['hauteur_' + self.type + '_' + self.sous_type]
-            self[custom]['largeur_boite_complete_paysage'] = self[custom]['largeur_' + self.type + '_' + self.sous_type]
+        for CUSTOM in self:
+            self[CUSTOM]['hauteur_boite_complete_portrait'] = self[CUSTOM]['hauteur_' + self.type + '_' + self.sous_type]
+            self[CUSTOM]['largeur_boite_complete_portrait'] = self[CUSTOM]['largeur_' + self.type + '_' + self.sous_type]
+            self[CUSTOM]['hauteur_boite_complete_paysage'] = self[CUSTOM]['hauteur_' + self.type + '_' + self.sous_type]
+            self[CUSTOM]['largeur_boite_complete_paysage'] = self[CUSTOM]['largeur_' + self.type + '_' + self.sous_type]
         return self
 
-    def placement_bloc_texte(self,dict_dict_info_custom):
+    def placement_bloc_texte(self):
         if len(self.df)>0:
             self.df = self.df.set_geometry('geometry_point_interception')
             #Gauche
@@ -175,11 +175,11 @@ class Bloc:
         return self
 
     def conversion_hauteur_largeur_bloc_icone_to_boite_complete(self):
-        for custom in self:
-            self[custom]['hauteur_boite_complete_portrait'] = self[custom]['hauteur_' + self.type + '_' + self.sous_type]
-            self[custom]['largeur_boite_complete_portrait'] = self[custom]['largeur_' + self.type + '_' + self.sous_type]
-            self[custom]['hauteur_boite_complete_paysage'] = self[custom]['hauteur_' + self.type + '_' + self.sous_type]
-            self[custom]['largeur_boite_complete_paysage'] = self[custom]['largeur_' + self.type + '_' + self.sous_type]
+        for CUSTOM in self:
+            self[CUSTOM]['hauteur_boite_complete_portrait'] = self[CUSTOM]['hauteur_' + self.type + '_' + self.sous_type]
+            self[CUSTOM]['largeur_boite_complete_portrait'] = self[CUSTOM]['largeur_' + self.type + '_' + self.sous_type]
+            self[CUSTOM]['hauteur_boite_complete_paysage'] = self[CUSTOM]['hauteur_' + self.type + '_' + self.sous_type]
+            self[CUSTOM]['largeur_boite_complete_paysage'] = self[CUSTOM]['largeur_' + self.type + '_' + self.sous_type]
         return self
 
     def placement_bloc_icone(self):
@@ -355,7 +355,7 @@ class Bloc:
     ####################################################
     #bloc lignes texte multiples
     ####################################################
-    def conversion_hauteur_largeur_bloc_lignes_multiples_to_boite_complete(self,dict_dict_info_custom):
+    def conversion_hauteur_largeur_bloc_lignes_multiples_to_boite_complete(self,dict_dict_info_CUSTOM):
         self.df['hauteur_boite_complete_portrait'] = self.df['hauteur_' + self.type + '_' + self.sous_type]
         self.df['largeur_boite_complete_portrait'] = self.df['largeur_' + self.type + '_' + self.sous_type]
         self.df['hauteur_boite_complete_paysage'] = self.df['largeur_' + self.type + '_' + self.sous_type]
@@ -401,7 +401,7 @@ class Bloc:
         return self
 
     def calcul_origine_phrases_bloc_lignes_multiples(self):
-        liste_REF_dans_custom = list(set((self.df_indiv['CODE_REF'].tolist())))
+        liste_REF_dans_CUSTOM = list(set((self.df_indiv['CODE_REF'].tolist())))
         def calcul_coordonnees_point_bloc_lm(df):
             alinea = dict_config_espace['alineaY_entre_boite_et_point_lm_paysage'][self.taille_globale_carto]
             orientation = df['type_placement_boite_final'].to_list()[0]
@@ -426,7 +426,7 @@ class Bloc:
             df['allo'] = "allo"
             return df
         liste_tempo = []
-        for CODE_REF in liste_REF_dans_custom:
+        for CODE_REF in liste_REF_dans_CUSTOM:
             liste_tempo.append(calcul_coordonnees_point_bloc_lm(self.df_indiv.loc[self.df_indiv["CODE_REF"]==CODE_REF]))
         self.df_indiv = pd.concat(liste_tempo)
         return self
@@ -455,17 +455,17 @@ class BlocTexteSimple(Bloc):
         return self
 
     def conversion_bloc_texte_to_boite_complete(self):
-        for custom in self:
-            self[custom] = self[custom].rename({'hauteur_' + self.type + '_' + self.sous_type:'hauteur_boite_complete','largeur_' + self.type + '_' + self.sous_type:'largeur_boite_complete'},axis=1)
+        for CUSTOM in self:
+            self[CUSTOM] = self[CUSTOM].rename({'hauteur_' + self.type + '_' + self.sous_type:'hauteur_boite_complete','largeur_' + self.type + '_' + self.sous_type:'largeur_boite_complete'},axis=1)
         return self
 
     def conversion_boite_complete_to_bloc_texte(self):
-        for custom in self:
-            self[custom] = self[custom].rename({'hauteur_boite_complete':'hauteur_' + self.type + '_' + self.sous_type,'largeur_boite_complete':'largeur_' + self.type + '_' + self.sous_type},axis=1)
+        for CUSTOM in self:
+            self[CUSTOM] = self[CUSTOM].rename({'hauteur_boite_complete':'hauteur_' + self.type + '_' + self.sous_type,'largeur_boite_complete':'largeur_' + self.type + '_' + self.sous_type},axis=1)
         return self
 
-    def placement_bloc_texte_simple_dans_boite(self,dict_dict_info_custom):
-        self = Bloc.placement_bloc_texte(self,dict_dict_info_custom)
+    def placement_bloc_texte_simple_dans_boite(self):
+        self = Bloc.placement_bloc_texte(self)
         return self
 
     def placement_texte_simple_dans_bloc_texte_simple(self):
@@ -676,13 +676,13 @@ class BlocIcone(Bloc):
         return self
 
     def conversion_bloc_icone_to_boite_complete(self):
-        for custom in self:
-            self[custom] = self[custom].rename({'hauteur_' + self.type + '_' + self.sous_type:'hauteur_boite_complete','largeur_' + self.type + '_' + self.sous_type:'largeur_boite_complete'},axis=1)
+        for CUSTOM in self:
+            self[CUSTOM] = self[CUSTOM].rename({'hauteur_' + self.type + '_' + self.sous_type:'hauteur_boite_complete','largeur_' + self.type + '_' + self.sous_type:'largeur_boite_complete'},axis=1)
         return self
 
     def conversion_hauteur_largeur_boite_complete_vers_bloc(self):
-        for custom in self:
-            self[custom] = self[custom].rename({'hauteur_boite_complete':'hauteur_' + self.type + '_' + self.sous_type,'largeur_boite_complete':'largeur_' + self.type + '_' + self.sous_type},axis=1)
+        for CUSTOM in self:
+            self[CUSTOM] = self[CUSTOM].rename({'hauteur_boite_complete':'hauteur_' + self.type + '_' + self.sous_type,'largeur_boite_complete':'largeur_' + self.type + '_' + self.sous_type},axis=1)
         return self
 
     def placement_bloc_icone_dans_boite(self):
@@ -792,11 +792,11 @@ class BlocLignesMultiples(Bloc):
 ##########################################################################################
 #Fonctions calcul taille
 ##########################################################################################
-    def calcul_taille_lignes_textes_multiples_indiv(self,dict_dict_info_custom):
+    def calcul_taille_lignes_textes_multiples_indiv(self):
         self = lignes_multiples.calcul_nb_liste_lignes_multiples(self,self.colonne_texte)
         self = lignes_multiples.extraire_hauteur_largeur_tableau_lignes_multiples(self,self.colonne_texte,self.type,self.sous_type[0])
         self = lignes_multiples.adaptation_hauteur_largeur_lm_indiv_fonction_nb_lignes(self,self.colonne_texte)
-        self = lignes_multiples.adaptation_hauteur_largeur_lm_indiv_fonction_orientation(self,self.colonne_texte,dict_dict_info_custom)
+        self = lignes_multiples.adaptation_hauteur_largeur_lm_indiv_fonction_orientation(self,self.colonne_texte)
         return self
 
     def calcul_taille_bloc_lignes_multiples(self):
@@ -830,16 +830,16 @@ class BlocLignesMultiples(Bloc):
         return self
 
     def conversion_bloc_lm_to_boite_complete(self):
-        for custom in self:
-            self[custom] = self[custom].rename({'hauteur_' + self.type + '_' + self.sous_type:'largeur_boite_complete','largeur_' + self.type + '_' + self.sous_type:'hauteur_boite_complete'},axis=1)
+        for CUSTOM in self:
+            self[CUSTOM] = self[CUSTOM].rename({'hauteur_' + self.type + '_' + self.sous_type:'largeur_boite_complete','largeur_' + self.type + '_' + self.sous_type:'hauteur_boite_complete'},axis=1)
         return self
 
     def conversion_boite_complete_to_bloc_lm(self):
-        for custom in self:
-            self[custom] = self[custom].rename({'hauteur_boite_complete':'hauteur_' + self.type + '_' + self.sous_type,'largeur_boite_complete':'largeur_' + self.type + '_' + self.sous_type},axis=1)
+        for CUSTOM in self:
+            self[CUSTOM] = self[CUSTOM].rename({'hauteur_boite_complete':'hauteur_' + self.type + '_' + self.sous_type,'largeur_boite_complete':'largeur_' + self.type + '_' + self.sous_type},axis=1)
         return self
 
-    def placement_bloc_lm_dans_boite(self,dict_dict_info_custom):
+    def placement_bloc_lm_dans_boite(self):
         self = Bloc.placement_bloc_lm_avec_calcul_coordonnees_bloc_lm(self)
         self = Bloc.actualisation_point_geometry_bloc_lm(self)
         return self

@@ -32,7 +32,7 @@ class DfTableauxActionsMIA:
                
         ###Changement attributs
         self.get_echelle_df()
-        self.recuperation_CODE_custom()
+        self.recuperation_CODE_CUSTOM()
         self.get_name()
         self.get_dict_nom_col()
         self.get_dict_type_col()
@@ -58,9 +58,9 @@ class DfTableauxActionsMIA:
 
 
     def __str__(self):
-        return f"tableau action : {self.CODE_custom},{self.NOM_MO}"
+        return f"tableau action : {self.CODE_CUSTOM},{self.NOM_MO}"
     def __repr__(self):
-        return f"tableau action : {self.CODE_custom},{self.NOM_MO}"
+        return f"tableau action : {self.CODE_CUSTOM},{self.NOM_MO}"
 
     def recuperation_xlsx_brut(self):
         self.fichier_brut=load_workbook(filename=self.path)
@@ -74,8 +74,8 @@ class DfTableauxActionsMIA:
             self.echelle_df = "MO"
         if (self.path).split(os.sep)[-3]=="DEP":
             self.echelle_df = "DEP"
-    def recuperation_CODE_custom(self):
-        self.CODE_custom = self.path.split(os.sep)[-2]            
+    def recuperation_CODE_CUSTOM(self):
+        self.CODE_CUSTOM = self.path.split(os.sep)[-2]            
     def get_dict_nom_col(self):
         self.dict_nom_col = config_DORA.creation_dict_dict_config_df_actions_MIA()['dict_conv_nom_col_DORA_'+self.echelle_df]
     def get_dict_type_col(self):
@@ -85,11 +85,11 @@ class DfTableauxActionsMIA:
     def get_name(self):
         if self.echelle_df == "MO":
             dict_MO_liste_NOM_MO = {folder.name:folder.NOM_MO for folder in list_rep_MO_gemapi}
-            self.name = dict_MO_liste_NOM_MO[self.CODE_custom]
+            self.name = dict_MO_liste_NOM_MO[self.CODE_CUSTOM]
     def get_numero_dep(self):
         if self.echelle_df == "MO":
             dict_MO_liste_CODE_DEP = {folder.name:folder.list_CODE_DEP for folder in list_rep_MO_gemapi}
-            self.numero_dep = dict_MO_liste_CODE_DEP[self.CODE_custom]
+            self.numero_dep = dict_MO_liste_CODE_DEP[self.CODE_CUSTOM]
     def get_annee_remplissage(self):
         try:
             self.annee_remplissage = int(self.df.iat[1,0][-4:])
@@ -313,17 +313,17 @@ class DfTableauxActionsMIA:
         for NOM_PPG_dans_df_tableau in list_PPG_dans_df:
             if NOM_PPG_dans_df_tableau not in dict_dict_info_REF['df_info_PPG']['NOM_PPG'].to_list():
                 print("Pour le tableau " + nom_tableau + ", pas de " + NOM_PPG_dans_df_tableau + " concordant trouvé dans df_info_PPG.csv")  
-                liste_PPG_du_custom = dict_relation_shp_liste["dict_liste_PPG_par_custom"][CODE_MO]
-                if len(liste_PPG_du_custom)==0:
+                liste_PPG_du_CUSTOM = dict_relation_shp_liste["dict_liste_PPG_par_CUSTOM"][CODE_MO]
+                if len(liste_PPG_du_CUSTOM)==0:
                     print("Pas de PPG pour ce MO dans df_info_PPG")
-                if len(liste_PPG_du_custom)==1:
-                    print("Mais il n'y a qu'un seul PPG dans df_info_PPG qui correspond à ce custom : " +  nom_tableau)
-                    CODE_PPG = dict_relation_shp_liste["dict_liste_PPG_par_custom"][CODE_MO][0]
-                    NOM_PPG = dict_dict_info_REF['df_info_PPG'].dict_CODE_NOM[dict_relation_shp_liste["dict_liste_PPG_par_custom"][CODE_MO][0]]
+                if len(liste_PPG_du_CUSTOM)==1:
+                    print("Mais il n'y a qu'un seul PPG dans df_info_PPG qui correspond à ce CUSTOM : " +  nom_tableau)
+                    CODE_PPG = dict_relation_shp_liste["dict_liste_PPG_par_CUSTOM"][CODE_MO][0]
+                    NOM_PPG = dict_dict_info_REF['df_info_PPG'].dict_CODE_NOM[dict_relation_shp_liste["dict_liste_PPG_par_CUSTOM"][CODE_MO][0]]
                     df_tableau.loc[(df_tableau['NOM_PPG']!='nan')&(df_tableau['NOM_PPG']!=NOM_PPG),"CODE_PPG"]=CODE_PPG
                     df_tableau.loc[df_tableau['NOM_PPG']==NOM_PPG_dans_df_tableau,"NOM_PPG"] = NOM_PPG
-                if len(liste_PPG_du_custom)>1:
-                    print("Plusieurs PPG dans df_info_PPG qui correspondent à ce custom : " +  nom_tableau)
+                if len(liste_PPG_du_CUSTOM)>1:
+                    print("Plusieurs PPG dans df_info_PPG qui correspondent à ce CUSTOM : " +  nom_tableau)
         return df_tableau
 
     def mise_en_forme_col_action_phare(df_tableau):
@@ -399,26 +399,26 @@ class DfTableauxActionsMIA:
             df.loc[df['echelle_princ_action']!=echelle_base_REF,"CODE_"+echelle_base_REF] = "nan"
         return df
 
-    def ajout_CODE_REF(df,dict_custom_maitre):
+    def ajout_CODE_REF(df,dict_CUSTOM_maitre):
         list_echelle_col_echelle_princ_action = list(set(df['echelle_princ_action'].to_list()))
-        list_echelle_col_echelle_princ_action = [x for x in list_echelle_col_echelle_princ_action if x in dict_custom_maitre.liste_echelle_REF_projet]
+        list_echelle_col_echelle_princ_action = [x for x in list_echelle_col_echelle_princ_action if x in dict_CUSTOM_maitre.liste_echelle_REF_projet]
         for echelle_princ_action in list_echelle_col_echelle_princ_action:
             df.loc[df['echelle_princ_action']==echelle_princ_action,'CODE_REF'] = df['CODE_'+echelle_princ_action]
         return df
     
-    def filtre_par_CODE_MO_si_df_DORA_MO_specifique_au_custom(self,dict_donnees,CODE_custom):
-        liste_CODE_custom_DORA = [v.CODE_custom for k,v in dict_donnees["dict_dict_df_actions_originaux"].items() if v.echelle_df=="MO"]
-        if CODE_custom in liste_CODE_custom_DORA:
-            self = self.loc[self['CODE_MO']==CODE_custom]
+    def filtre_par_CODE_MO_si_df_DORA_MO_specifique_au_CUSTOM(self,dict_donnees,CODE_CUSTOM):
+        liste_CODE_CUSTOM_DORA = [v.CODE_CUSTOM for k,v in dict_donnees["dict_dict_df_actions_originaux"].items() if v.echelle_df=="MO"]
+        if CODE_CUSTOM in liste_CODE_CUSTOM_DORA:
+            self = self.loc[self['CODE_MO']==CODE_CUSTOM]
         return self
 
-    def separation_entite_normal_ou_ortho_echelle_custom_MO(df_BDD,dict_donnees,liste_echelle_REF_total,liste_echelle_boite_ortho,dict_relation_shp_liste,echelle_base_REF,CODE_custom):
+    def separation_entite_normal_ou_ortho_echelle_CUSTOM_MO(df_BDD,dict_donnees,liste_echelle_REF_total,liste_echelle_boite_ortho,dict_relation_shp_liste,echelle_base_REF,CODE_CUSTOM):
         dict_type_col = dict_donnees['BDD_DORA'].dict_type_col
-        def tri_echelle_custom_MO(ligne_df_BDD):
+        def tri_echelle_CUSTOM_MO(ligne_df_BDD):
             echelle_actuelle = ligne_df_BDD['echelle_princ_action']
             for echelle_a_essayer in [x for x in liste_echelle_REF_total if x!=echelle_actuelle]:
                 if echelle_a_essayer!=echelle_base_REF:
-                    CODE_REF_echelle_a_essayer = dict_relation_shp_liste['dict_liste_' + echelle_a_essayer + '_par_custom'][CODE_custom][0]
+                    CODE_REF_echelle_a_essayer = dict_relation_shp_liste['dict_liste_' + echelle_a_essayer + '_par_CUSTOM'][CODE_CUSTOM][0]
                     list_CODE_REF_echelle_a_essayer = dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_' + echelle_a_essayer][CODE_REF_echelle_a_essayer]
                     if dict_type_col["CODE_"+echelle_actuelle]=="list":
                         list_CODE_REF = ligne_df_BDD['CODE_REF']
@@ -431,12 +431,12 @@ class DfTableauxActionsMIA:
                         if CODE_REF not in dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_' + echelle_actuelle]:  
                             nouveau_CODE_REF = []
                             break
-                    liste_entite_base_concerne_dans_custom = [x for x in list_CODE_REF if x in list_CODE_REF_echelle_a_essayer]
-                    if len(liste_entite_base_concerne_dans_custom)>2:
+                    liste_entite_base_concerne_dans_CUSTOM = [x for x in list_CODE_REF if x in list_CODE_REF_echelle_a_essayer]
+                    if len(liste_entite_base_concerne_dans_CUSTOM)>2:
                         nouveau_CODE_REF = CODE_REF_echelle_a_essayer
                         break
-                    if len(liste_entite_base_concerne_dans_custom)<3:
-                        nouveau_CODE_REF = liste_entite_base_concerne_dans_custom
+                    if len(liste_entite_base_concerne_dans_CUSTOM)<3:
+                        nouveau_CODE_REF = liste_entite_base_concerne_dans_CUSTOM
                         if echelle_a_essayer==[x for x in liste_echelle_REF_total if x!=echelle_actuelle][-1]:
                             nouveau_CODE_REF = ligne_df_BDD['CODE_REF']
                             echelle_a_essayer = ligne_df_BDD['echelle_princ_action']               
@@ -444,14 +444,14 @@ class DfTableauxActionsMIA:
             ligne_df_BDD['CODE_REF'] = nouveau_CODE_REF
             return ligne_df_BDD    
 
-    def separation_entite_normal_ou_ortho_echelle_custom(df_BDD,dict_donnees,liste_echelle_boite_normal,dict_relation_shp_liste,echelle_custom,CODE_custom):
+    def separation_entite_normal_ou_ortho_echelle_CUSTOM(df_BDD,dict_donnees,liste_echelle_boite_normal,dict_relation_shp_liste,echelle_CUSTOM,CODE_CUSTOM):
         #Il faut faire en fonction du type decol de l'echelle finale de chaque ligne
         dict_type_col = dict_donnees['BDD_DORA'].dict_type_col
-        def tri_echelle_custom(ligne_df_BDD):
+        def tri_echelle_CUSTOM(ligne_df_BDD):
             echelle_actuelle = ligne_df_BDD['echelle_princ_action']
 
             for echelle_a_essayer in liste_echelle_boite_normal:
-                liste_CODE_REF_custom = dict_relation_shp_liste['dict_liste_' + echelle_a_essayer + '_par_custom'][CODE_custom]
+                liste_CODE_REF_CUSTOM = dict_relation_shp_liste['dict_liste_' + echelle_a_essayer + '_par_CUSTOM'][CODE_CUSTOM]
                 if dict_type_col["CODE_"+echelle_actuelle]=="list":
                     list_CODE_REF = ligne_df_BDD['CODE_REF']
                 if dict_type_col["CODE_"+echelle_actuelle]=="str":
@@ -465,21 +465,21 @@ class DfTableauxActionsMIA:
                     list_entite_echelle_a_essayer_pour_contenir_action = [k for k,v in dict_relation_shp_liste['dict_liste_' + echelle_actuelle + '_par_' + echelle_a_essayer].items() if any(x in list_CODE_REF for x in v)]
                 if echelle_a_essayer==liste_echelle_boite_normal[-1]:
                     if len(list_entite_echelle_a_essayer_pour_contenir_action)>2:
-                        if any(x in list_CODE_REF for x in dict_relation_shp_liste['dict_liste_' + echelle_actuelle + '_par_custom'][CODE_custom]):
-                            nouveau_CODE_REF = CODE_custom
-                            nouvelle_echelle_custom = echelle_custom
-                        if not any(x in list_CODE_REF for x in dict_relation_shp_liste['dict_liste_' + echelle_actuelle + '_par_custom'][CODE_custom]):
+                        if any(x in list_CODE_REF for x in dict_relation_shp_liste['dict_liste_' + echelle_actuelle + '_par_CUSTOM'][CODE_CUSTOM]):
+                            nouveau_CODE_REF = CODE_CUSTOM
+                            nouvelle_echelle_CUSTOM = echelle_CUSTOM
+                        if not any(x in list_CODE_REF for x in dict_relation_shp_liste['dict_liste_' + echelle_actuelle + '_par_CUSTOM'][CODE_CUSTOM]):
                             nouveau_CODE_REF = "a_supprimer"
-                            nouvelle_echelle_custom = "a_supprimer"                         
+                            nouvelle_echelle_CUSTOM = "a_supprimer"                         
                 if len(list_entite_echelle_a_essayer_pour_contenir_action)<3:
                     nouveau_CODE_REF = list_entite_echelle_a_essayer_pour_contenir_action
-                    nouvelle_echelle_custom = echelle_a_essayer
+                    nouvelle_echelle_CUSTOM = echelle_a_essayer
                     break
-            ligne_df_BDD['echelle_princ_action'] = nouvelle_echelle_custom
+            ligne_df_BDD['echelle_princ_action'] = nouvelle_echelle_CUSTOM
             ligne_df_BDD['CODE_REF'] = nouveau_CODE_REF
             return ligne_df_BDD            
 
-        df_BDD = df_BDD.apply(lambda x:tri_echelle_custom(x),axis=1)
+        df_BDD = df_BDD.apply(lambda x:tri_echelle_CUSTOM(x),axis=1)
         return df_BDD
 
     ##########################################################################################

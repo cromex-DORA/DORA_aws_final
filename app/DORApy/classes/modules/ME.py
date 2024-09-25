@@ -27,26 +27,26 @@ def df_chainage_list_amont(dict_dict_info_REF):
         dict_chainage_list_amont[CODE_ME_aval_sans_ME_amont] = []
     return dict_chainage_list_amont
 
-def creation_dict_surface_par_ME_par_custom(dict_decoupREF_reduire,dict_special_custom_a_reduire=None):
-    if dict_special_custom_a_reduire==None:
-        df_adaptation_ME_decoupees = dict_decoupREF_reduire[CODE_custom]['gdf_decoupME_MO']
+def creation_dict_surface_par_ME_par_CUSTOM(dict_decoupREF_reduire,dict_special_CUSTOM_a_reduire=None):
+    if dict_special_CUSTOM_a_reduire==None:
+        df_adaptation_ME_decoupees = dict_decoupREF_reduire[CODE_CUSTOM]['gdf_decoupME_MO']
         df_adaptation_ME_decoupees['surface_ME'] = df_adaptation_ME_decoupees['surface_ME']/dict_config_espace['facteur_division'][self.taille_globale_carto]
-        dict_surface_decoupME_par_custom={CODE_custom:dict(zip(df_adaptation_ME_decoupees['CODE_ME'].to_list(),df_adaptation_ME_decoupees['surface_ME'].to_list())) for CODE_custom in dict_decoupREF_reduire}
-    if dict_special_custom_a_reduire!=None:
-        dict_surface_decoupME_par_custom = {}
-        for CODE_custom in dict_decoupREF_reduire:
-            df_adaptation_ME_decoupees = dict_special_custom_a_reduire[CODE_custom]['df_taille_boite_complete']
+        dict_surface_decoupME_par_CUSTOM={CODE_CUSTOM:dict(zip(df_adaptation_ME_decoupees['CODE_ME'].to_list(),df_adaptation_ME_decoupees['surface_ME'].to_list())) for CODE_CUSTOM in dict_decoupREF_reduire}
+    if dict_special_CUSTOM_a_reduire!=None:
+        dict_surface_decoupME_par_CUSTOM = {}
+        for CODE_CUSTOM in dict_decoupREF_reduire:
+            df_adaptation_ME_decoupees = dict_special_CUSTOM_a_reduire[CODE_CUSTOM]['df_taille_boite_complete']
             #On compléte le dictionnaire de taille par des 0 si éléments manquants
             df_adaptation_ME_decoupees["CODE_REF"] = df_adaptation_ME_decoupees["CODE_REF"].apply(lambda x: [x+"$"+str(numero) for numero in range(1,4)])
             df_adaptation_ME_decoupees=df_adaptation_ME_decoupees.explode("CODE_REF")
             df_adaptation_ME_decoupees['surface_boite'] = df_adaptation_ME_decoupees['surface_boite']/dict_config_espace['facteur_division'][self.taille_globale_carto]
-            dict_surface_decoupME_par_custom[CODE_custom]=dict(zip(df_adaptation_ME_decoupees['CODE_REF'].to_list(),df_adaptation_ME_decoupees['surface_boite'].to_list()))
-            liste_ME_total = dict_decoupREF_reduire[CODE_custom]['gdf_decoupME_custom']['CODE_ME'].to_list()
-            dict_surface_decoupME_par_custom[CODE_custom] = {k:(dict_surface_decoupME_par_custom[CODE_custom][k] if k in dict_surface_decoupME_par_custom[CODE_custom] else 0)  for k in liste_ME_total}
-    return dict_surface_decoupME_par_custom
+            dict_surface_decoupME_par_CUSTOM[CODE_CUSTOM]=dict(zip(df_adaptation_ME_decoupees['CODE_REF'].to_list(),df_adaptation_ME_decoupees['surface_boite'].to_list()))
+            liste_ME_total = dict_decoupREF_reduire[CODE_CUSTOM]['gdf_decoupME_CUSTOM']['CODE_ME'].to_list()
+            dict_surface_decoupME_par_CUSTOM[CODE_CUSTOM] = {k:(dict_surface_decoupME_par_CUSTOM[CODE_CUSTOM][k] if k in dict_surface_decoupME_par_CUSTOM[CODE_CUSTOM] else 0)  for k in liste_ME_total}
+    return dict_surface_decoupME_par_CUSTOM
 
 def import_ME_CE_AG():
-    filename = ("shp_files\\ME\\ME CE AG complet.shp")
+    filename = ("shp_files\\CE_ME\\CE_ME_AG_complet.gpkg")
     filename = connect_path.get_file_path_racine(filename)
     shp_ME_CE_AG = gpd.read_file(filename)
     return shp_ME_CE_AG

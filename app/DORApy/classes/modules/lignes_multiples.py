@@ -56,7 +56,7 @@ def adaptation_hauteur_largeur_lm_indiv_fonction_nb_lignes(self,colonne_texte):
     self.df.loc[self.df['nb_ligne_ligne_indiv']==5,'hauteur_ligne_indiv'] = self.df['hauteur_ligne_indiv']*0.65
     return self
 
-def adaptation_hauteur_largeur_lm_indiv_fonction_orientation(self,colonne_texte,dict_dict_info_custom):
+def adaptation_hauteur_largeur_lm_indiv_fonction_orientation(self,colonne_texte):
     #La largeur en biais est la hauteur que l'on verra sur la carto finale
     self.df['hauteur_ligne_indiv_droit'] = self.df['hauteur_ligne_indiv'] * 0.9
     self.df['largeur_ligne_indiv_droit'] = self.df['largeur_ligne_indiv'] * 1.15

@@ -1,10 +1,10 @@
 from flask import Flask, send_from_directory, jsonify, request, Response
 import os
 from flask_cors import CORS
-from app.DORApy import creation_carte,ajout_MO_ou_PPG
+from app.DORApy import check_tableau_DORA, creation_carte,ajout_MO_ou_PPG
 from app.DORApy.security import gestion_db_users,gestion_file_upload
 from app.DORApy.classes.modules import connect_path
-from app.DORApy import gestion_admin,creation_tableau_vierge_DORA,creation_carte
+from app.DORApy import gestion_admin,creation_tableau_vierge_DORA,creation_carte,check_tableau_DORA
 from api import dict_geom_REF,dict_dict_info_REF
 from app.DORApy.classes.Class_NDictGdf import NDictGdf
 from app.DORApy.classes.Class_NGdfREF import NGdfREF
@@ -104,11 +104,11 @@ def creer_tableau_vierge_DORA():
     name = request.form.get('name', '')
     path = os.path.join("MO_gemapi",id_folder)
 
-    df_vierge_MO = creation_tableau_vierge_DORA.create_tableau_vierge_DORA([name])
+    df_vierge_MO = creation_tableau_vierge_DORA.create_tableau_vierge_DORA([id_folder])
 
     path = os.path.join("MO_gemapi",id_folder,"tableau_vierge_" + name + ".xlsx")
 
-    connect_path.upload_file_vers_s3("custom",df_vierge_MO,path)
+    connect_path.upload_file_vers_s3("CUSTOM",df_vierge_MO,path)
 
     return jsonify({'message': 'File created successfully'}), 201
 
@@ -118,7 +118,7 @@ def download_file():
     if not file_key:
         return jsonify({'error': 'File path is required'}), 400
     print(file_key)
-    url = connect_path.download_file_from_s3("custom",file_key)
+    url = connect_path.download_file_from_s3("CUSTOM",file_key)
     return jsonify({'url': url})
 
 @app.route('/upload_MO_gemapi', methods=['POST'])
@@ -179,6 +179,24 @@ def upload_complete_MO_gemapi():
     geometry = request.form.get('geometry')
 
     ajout_MO_ou_PPG.ajout_shp_MO_gemapi_BDD_DORA(nom_mo,alias,code_siren,geometry)
+    return jsonify({'message': 'Error processing files'}), 500
+
+@app.route('/verif_tableau_DORA', methods=['POST'])
+def verif_tableau_DORA():
+    print("allo", file=sys.stderr)
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'message': 'Token is missing'}), 403
+
+    try:
+        decoded_token = jwt.decode(token, SECRET_JKEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired'}), 403
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid token'}), 403 
+
+    NOM_MO = request.form.get('NOM_MO')
+    check_tableau_DORA.verification_tableau_vierge_DORA([NOM_MO])
     return jsonify({'message': 'Error processing files'}), 500
 
 @app.route('/', defaults={'path': ''})

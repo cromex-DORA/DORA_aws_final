@@ -16,12 +16,14 @@ class NGdfDecoupREF:
         self.gdf = gdf_decoup
 
 
-def creation_decoupREF(gdf_REF1,gdf_REF2,REF1,REF2,dict_custom_maitre=None):
+def creation_decoupREF(gdf_REF1,gdf_REF2,REF1,REF2,dict_CUSTOM_maitre=None):
     couche_REF1 = gdf_REF1.gdf[['CODE_'+REF1,'NOM_'+REF1,'geometry_'+REF1]]
     if gdf_REF2.type_de_geom=="polygon":
         couche_REF2 = gdf_REF2.gdf[['CODE_'+REF2,'NOM_'+REF2,'geometry_'+REF2,'surface_'+REF2]]
     if gdf_REF2.type_de_geom=="lignes":  
         couche_REF2 = gdf_REF2.gdf[['CODE_'+REF2,'NOM_'+REF2,'geometry_'+REF2,'longueur_'+REF2]]  
+    if gdf_REF2.type_de_geom=="point":
+        couche_REF2 = gdf_REF2.gdf[['CODE_'+REF2,'NOM_'+REF2,'geometry_'+REF2]]           
     if gdf_REF1.type_de_geom =="polygon" and gdf_REF2.type_de_geom =="polygon":
         dict_mapping_CODE_REF1_surface_REF1 = dict(zip(gdf_REF1.gdf['CODE_'+REF1].to_list(),gdf_REF1.gdf.area.to_list()))
         gdf_decoup = gpd.overlay(couche_REF1,couche_REF2, how='intersection',keep_geom_type=False)
@@ -31,9 +33,9 @@ def creation_decoupREF(gdf_REF1,gdf_REF2,REF1,REF2,dict_custom_maitre=None):
             gdf_decoup['ratio_surf'] = gdf_decoup['surface_decoup' + REF2]/gdf_decoup['surface_' + REF2]
     if gdf_REF1.type_de_geom =="polygon" and gdf_REF2.type_de_geom =="point":
         gdf_REF1_avec_buffer = copy.deepcopy(couche_REF1)
-        if dict_custom_maitre!=None:
-            if dict_custom_maitre.type_rendu == "tableau_vierge":
-                if REF1=="custom":
+        if dict_CUSTOM_maitre!=None:
+            if dict_CUSTOM_maitre.type_rendu == "tableau_vierge":
+                if REF1=="CUSTOM":
                     gdf_REF1_avec_buffer["geometry_"+REF1] = gdf_REF1_avec_buffer["geometry_"+REF1].buffer(1000)
         gdf_decoup = gpd.sjoin(couche_REF2, gdf_REF1_avec_buffer)
         gdf_decoup = gdf_decoup[[x for x in list(gdf_decoup) if x!="geometry"]]

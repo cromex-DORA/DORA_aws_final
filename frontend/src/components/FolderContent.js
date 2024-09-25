@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import MapDEPMOgemapi from './MapDEPMOgemapi';
-import FolderList from './FolderList';
-import Breadcrumb from './Breadcrumb'; // Import du Breadcrumb
-import { jwtDecode } from 'jwt-decode'; // Import correct
+import ContenuMO from './ContenuMO'; // Renommé ici
+import Breadcrumb from './Breadcrumb'; 
+import { jwtDecode } from 'jwt-decode'; 
 import './FolderContent.css';
 import { fetchMOThunk, fetchPPGThunk, fetchMEThunk, fetchCEMEThunk } from '../features/geojson/geojsonSlice';
 
-const FolderContent = () => {  // Reçois le département en tant que prop
+const FolderContent = () => {  
     const dispatch = useDispatch();
     const geoJsonMO = useSelector((state) => state.geojson.mo);
     const geoJsonME = useSelector((state) => state.geojson.me);
@@ -32,13 +32,11 @@ const FolderContent = () => {  // Reçois le département en tant que prop
         ]
     };
 
-
     useEffect(() => {
-        // Décoder le token pour obtenir le département
         const token = localStorage.getItem('token');
         if (token) {
-            const decoded = jwtDecode(token); // Utilisation correcte de jwtDecode
-            setDepartment(decoded.CODE_DEP); // Stocke le CODE_DEP dans l'état
+            const decoded = jwtDecode(token); 
+            setDepartment(decoded.CODE_DEP);
         }
     }, []);
 
@@ -59,31 +57,6 @@ const FolderContent = () => {  // Reçois le département en tant que prop
             setFolders(folderData);
         }
     }, [geoJsonMO]);
-
-    const createFile = async () => {
-        const formData = new FormData();
-        formData.append('id', selectedFolderId);
-        formData.append('name', folderName);
-        formData.append('path', currentPath);
-
-        const token = localStorage.getItem('token');
-        try {
-            const response = await fetch(`${process.env.REACT_APP_IP_SERV}/vierge_DORA`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': token,
-                },
-                body: formData,
-            });
-
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
-            console.log('Tableau vierge DORA créé !');
-            dispatch(fetchMOThunk());
-        } catch (error) {
-            console.error('Échec de la création du fichier:', error);
-        }
-    };
 
     useEffect(() => {
         if (selectedFolderId) {
@@ -116,24 +89,13 @@ const FolderContent = () => {  // Reçois le département en tant que prop
     return (
         <div className="app-container">
             <div className="folder-content-container">
-                {/* Ajout de la barre d'adresse */}
                 <Breadcrumb
-                    department={department} // Passe le département décodé depuis le token
+                    department={department}
                     selectedFolderId={selectedFolderId}
                     handleBackClick={handleBackClick}
                 />
 
-                {view === 'files' && (
-                    <>
-                        <button onClick={handleBackClick} style={{ marginBottom: '10px' }}>
-                            Back
-                        </button>
-                        <button onClick={createFile} style={{ marginBottom: '10px', marginLeft: '10px' }}>
-                            Créer fichier DORA
-                        </button>
-                    </>
-                )}
-                <FolderList
+                <ContenuMO
                     folders={view === 'folders' ? folders : []}
                     files={view === 'files' ? files : []}
                     currentPath={currentPath}

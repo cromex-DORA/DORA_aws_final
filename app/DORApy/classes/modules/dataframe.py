@@ -212,12 +212,12 @@ def transformation_tableaux_nom_PPG(self):
     self['echelle_REF'] = 'PPG'
     return self
 
-def creation_tableaux_nom_custom(dict_dict_info_custom):
-    liste_CODE_custom = list(dict_dict_info_custom)
-    liste_ALIAS_custom = [dict_dict_info_custom[x]['ALIAS'] for x in liste_CODE_custom]
-    liste_NOM_MO_custom = [dict_dict_info_custom[x]['NOM_custom'] for x in liste_CODE_custom]
-    self = pd.DataFrame({'CODE_custom':liste_CODE_custom,'nom_simple_custom':liste_ALIAS_custom,'nom_custom_complet':liste_NOM_MO_custom})
-    self['echelle_REF'] = 'custom'
+def creation_tableaux_nom_CUSTOM(dict_dict_info_CUSTOM):
+    liste_CODE_CUSTOM = list(dict_dict_info_CUSTOM)
+    liste_ALIAS_CUSTOM = [dict_dict_info_CUSTOM[x]['ALIAS'] for x in liste_CODE_CUSTOM]
+    liste_NOM_MO_CUSTOM = [dict_dict_info_CUSTOM[x]['NOM_CUSTOM'] for x in liste_CODE_CUSTOM]
+    self = pd.DataFrame({'CODE_CUSTOM':liste_CODE_CUSTOM,'nom_simple_CUSTOM':liste_ALIAS_CUSTOM,'nom_CUSTOM_complet':liste_NOM_MO_CUSTOM})
+    self['echelle_REF'] = 'CUSTOM'
     return self
 
 

@@ -15,32 +15,34 @@ dict_config_espace,dict_config_police = config_DORA.creation_dicts_config()
 ##########################################################################################
 #buffer
 ##########################################################################################
+class gdf_buffer:
+    def __init__(self):
+        self.type_de_gdf = "gdf_buffer"
+
 class dict_buffer(dict):
     @property
     def _constructor(self):
         return dict_buffer
 
-    def creation_ligne_buffer(self,dict_custom_maitre):
-        for custom in self:
-            self[custom]['geometry_custom_buffer'] = self[custom]['geometry_custom'].convex_hull.buffer(dict_config_espace['longueur_buffer_custom'][dict_custom_maitre.taille_carto])
-            self[custom]['geometry_custom_buffer'] = self[custom]['geometry_custom_buffer'].boundary
-            self[custom] = self[custom][['NOM_custom','geometry_custom_buffer']]
-            self[custom] = self[custom].set_geometry('geometry_custom_buffer')
+    def creation_ligne_buffer(self,dict_CUSTOM_maitre):
+        for CUSTOM in dict_CUSTOM_maitre:
+            self[CUSTOM] = gdf_buffer()
+            self[CUSTOM].gdf_buffer = dict_CUSTOM_maitre[CUSTOM].gdf.convex_hull.buffer(dict_config_espace['longueur_buffer_custom'][dict_CUSTOM_maitre.taille_carto])
+            self[CUSTOM].gdf_buffer = gpd.GeoDataFrame(geometry=gpd.GeoSeries(self[CUSTOM].gdf_buffer))
+            self[CUSTOM].gdf_buffer = self[CUSTOM].gdf_buffer.rename({"geometry":"geometry_CUSTOM_buffer"},axis=1)
+            self[CUSTOM].gdf_buffer['CODE_CUSTOM'] = [CUSTOM]
+            self[CUSTOM].gdf_buffer['geometry_CUSTOM_buffer'] = self[CUSTOM].gdf_buffer['geometry_CUSTOM_buffer'].boundary
+            self[CUSTOM].gdf_buffer = self[CUSTOM].gdf_buffer[['CODE_CUSTOM','geometry_CUSTOM_buffer']]
+            self[CUSTOM].gdf_buffer = self[CUSTOM].gdf_buffer.set_geometry('geometry_CUSTOM_buffer')
         return self
 
     ############################################################################################################################
-    #creation dict custom
+    #creation dict CUSTOM
     ############################################################################################################################
-    def creation_dict_df_buffer_custom(self,dict_dict_info_custom,dict_custom_maitre):
-        for CODE_custom in dict_dict_info_custom:
-            self[CODE_custom]=dict_custom_maitre.gdf_custom.gdf[dict_custom_maitre.gdf_custom.gdf['CODE_custom']==CODE_custom]
-            self[CODE_custom] = self[CODE_custom].reset_index(drop=True)
-        return self
-
     def ajout_attributs_coord_points_cardinaux_buffer(self):
-        for custom in self:
-            list_point =  self[custom]['geometry_custom_buffer'].tolist()
+        for CUSTOM in self:
+            list_point =  self[CUSTOM].gdf_buffer['geometry_CUSTOM_buffer'].tolist()
             list_point = list(list_point[0].coords)
-            self[custom].liste_xy_extreme_NESO =  [max(list_point,key=itemgetter(1)),max(list_point),min(list_point,key=itemgetter(1)),min(list_point)]
+            self[CUSTOM].liste_xy_extreme_NESO =  [max(list_point,key=itemgetter(1)),max(list_point),min(list_point,key=itemgetter(1)),min(list_point)]
         return self
 

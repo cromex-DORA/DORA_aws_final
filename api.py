@@ -18,18 +18,18 @@ api_bp = Blueprint('api', __name__)
 SECRET_JKEY = os.getenv('SECRET_JKEY')
 
 
-dict_custom_maitre = DictCustomMaitre({})
-dict_custom_maitre.set_config_type_projet(type_rendu='carte',type_donnees='action',thematique='MIA',public_cible="tech",liste_grand_bassin=['AG'])
+dict_CUSTOM_maitre = DictCustomMaitre({})
+dict_CUSTOM_maitre.set_config_type_projet(type_rendu='carte',type_donnees='action',thematique='MIA',public_cible="tech",liste_grand_bassin=['AG'])
 
 dict_dict_info_REF = DictDfInfoShp({})
 dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()
 dict_geom_REF = Class_NDictGdf.NDictGdf({})
-dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO","DEP","PPG","ME","CE_ME"])
-
-    #Relation géographiques entre custom et référentiels
-dict_decoupREF = Class_NDictGdf.creation_dict_decoupREF(dict_geom_REF,dict_custom_maitre)
+#dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO","DEP","PPG","ME","CE_ME"])
+dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO"])
+    #Relation géographiques entre CUSTOM et référentiels
+dict_decoupREF = Class_NDictGdf.creation_dict_decoupREF(dict_geom_REF,dict_CUSTOM_maitre)
     #Relation géographiques entre référentiels
-dict_relation_shp_liste = Class_NDictGdf.extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_custom_maitre,dict_decoupREF)
+dict_relation_shp_liste = Class_NDictGdf.extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_CUSTOM_maitre,dict_decoupREF)
 
 
 

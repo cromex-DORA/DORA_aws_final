@@ -3,10 +3,10 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-class gdf_gros_custom(gpd.GeoDataFrame):
+class gdf_gros_CUSTOM(gpd.GeoDataFrame):
     @property
     def _constructor(self):
-        return gdf_gros_custom
+        return gdf_gros_CUSTOM
 
     def presence_alias(self):
         # return the geographic center point of this DataFrame
@@ -17,6 +17,6 @@ class gdf_gros_custom(gpd.GeoDataFrame):
                 self.nom_colonne_alias = x
         return self
 
-    def modifier_liste_colonnes_a_garder_couche_custom(self,liste_colonnes_a_garder_couche_custom):
-        self.liste_colonnes_a_garder_couche_custom = liste_colonnes_a_garder_couche_custom
+    def modifier_liste_colonnes_a_garder_couche_CUSTOM(self,liste_colonnes_a_garder_couche_CUSTOM):
+        self.liste_colonnes_a_garder_couche_CUSTOM = liste_colonnes_a_garder_couche_CUSTOM
         return self

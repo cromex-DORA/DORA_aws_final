@@ -28,7 +28,7 @@ def ajout_shp_MO_gemapi_BDD_DORA(nom_mo,alias,code_siren,geometry):
     dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()
 
     dict_geom_REF = Class_NDictGdf.NDictGdf({})
-    dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=[type_REF_maj,"DEP"])
+    dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=[type_REF_maj,"DEP"])
 
     geojson_obj = json.loads(geometry)
 

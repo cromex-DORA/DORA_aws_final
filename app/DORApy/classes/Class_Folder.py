@@ -9,7 +9,7 @@ dict_dict_info_REF = DictDfInfoShp({})
 dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp(['MO','PPG'])
 
 
-def get_path_dossier_custom(REF):
+def get_path_dossier_CUSTOM(REF):
     if REF=="MO":
         chemin = "MO_gemapi"
     return chemin

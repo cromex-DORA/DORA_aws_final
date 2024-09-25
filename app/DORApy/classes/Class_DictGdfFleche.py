@@ -16,13 +16,13 @@ class DictGdfFleche(DictBoiteComplete):
 
 
     def creation_dict_gdf_fleche_boite_vers_decoupREF(self,dict_decoupREF):
-        for nom_entite_custom,contenu_custom in self.items():
-            for nom_boite_maitre,dict_boite_maitre in contenu_custom.items():
+        for nom_entite_CUSTOM,contenu_CUSTOM in self.items():
+            for nom_boite_maitre,dict_boite_maitre in contenu_CUSTOM.items():
                 if dict_boite_maitre.orientation =="normal":
                     dict_boite_maitre.df_fleche=dict_boite_maitre.df[["CODE_REF",'geometry_point_interception','echelle_REF']]
                     list_df_tempo = []
                     for echelle_REF in dict_boite_maitre.liste_echelle_REF:
-                        dict_decoupREF_tempo = dict_decoupREF['gdf_decoup' + echelle_REF + '_custom'].gdf.loc[dict_decoupREF['gdf_decoup' + echelle_REF + '_custom'].gdf['CODE_custom']==contenu_custom.CODE_custom]
+                        dict_decoupREF_tempo = dict_decoupREF['gdf_decoup' + echelle_REF + '_CUSTOM'].gdf.loc[dict_decoupREF['gdf_decoup' + echelle_REF + '_CUSTOM'].gdf['CODE_CUSTOM']==contenu_CUSTOM.CODE_CUSTOM]
                         dict_decoupREF_tempo = dict_decoupREF_tempo.rename({"CODE_"+echelle_REF:"CODE_REF"},axis=1)
                         df_tempo = pd.merge(dict_boite_maitre.df_fleche,dict_decoupREF_tempo,on="CODE_REF")
                         list_df_tempo.append(df_tempo)
@@ -35,16 +35,16 @@ class DictGdfFleche(DictBoiteComplete):
         return self
 
     def ajout_colonne_atlas_pour_export_vers_QGIS_dans_fleche(self,un_projet):
-        for nom_entite_custom,contenu_custom in self.items():
-            for nom_boite_maitre,dict_boite_maitre in contenu_custom.items():
+        for nom_entite_CUSTOM,contenu_CUSTOM in self.items():
+            for nom_boite_maitre,dict_boite_maitre in contenu_CUSTOM.items():
                 if dict_boite_maitre.orientation =="normal":
-                    dict_boite_maitre.df_fleche['id_atlas'] = contenu_custom.CODE_custom + '%' + un_projet.type_donnees + '%' + un_projet.thematique + '%' + un_projet.public_cible + '%' + un_projet.info_fond_carte
+                    dict_boite_maitre.df_fleche['id_atlas'] = contenu_CUSTOM.CODE_CUSTOM + '%' + un_projet.type_donnees + '%' + un_projet.thematique + '%' + un_projet.public_cible + '%' + un_projet.info_fond_carte
         return self
     
     def export_fleche(self,un_projet):
         id_projet = un_projet.type_donnees + '_' + un_projet.thematique + '_' + un_projet.public_cible
-        for nom_entite_custom,contenu_custom in self.items():
-            for type_boite,contenu_boite in contenu_custom.items():
+        for nom_entite_CUSTOM,contenu_CUSTOM in self.items():
+            for type_boite,contenu_boite in contenu_CUSTOM.items():
                 if contenu_boite.orientation=="normal":
                     contenu_boite.df_fleche = contenu_boite.df_fleche.to_file("/mnt/g/travail/carto/projets basiques/PAOT global 5.0/"+ id_projet +"/couche_fleche/fleche_" + id_projet +".shp",engine="fiona", encoding='utf-8')
 

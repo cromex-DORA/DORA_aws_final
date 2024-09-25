@@ -15,9 +15,9 @@ class GdfCompletREF(gpd.GeoDataFrame):
 
     def attribution_GdfCompletREF(self,echelle_REF_shp):
         self.echelle_REF_shp = echelle_REF_shp
-        if echelle_REF_shp=='custom':
-            self.nom_entite_REF = 'NOM_custom'
-            self.colonne_geometry = 'geometry_custom'
+        if echelle_REF_shp=='CUSTOM':
+            self.nom_entite_REF = 'NOM_CUSTOM'
+            self.colonne_geometry = 'geometry_CUSTOM'
             self.type_de_geom = 'polygon'
         if echelle_REF_shp=='ME':
             self.nom_entite_REF = 'NOM_ME'
@@ -136,52 +136,52 @@ class GdfCompletREF(gpd.GeoDataFrame):
         return couche_REF
 
     
-class ListGdfCustom(GdfCompletREF):
+class ListGdfCUSTOM(GdfCompletREF):
     @property
     def _constructor(self):
-        return ListGdfCustom
+        return ListGdfCUSTOM
 
     def reset_CODE_MO_et_nom_org_eventuels(self):
-        self.loc[self['issu_BDD']==False,'CODE_custom'] = ""
-        self.loc[self['issu_BDD']==False,'NOM_custom'] = ""
+        self.loc[self['issu_BDD']==False,'CODE_CUSTOM'] = ""
+        self.loc[self['issu_BDD']==False,'NOM_CUSTOM'] = ""
         return self
 
     def Attribution_CODE_MO_et_NOM_MO(self,dict_gdf_a_check):
-        self['surface_custom'] = self.area
+        self['surface_CUSTOM'] = self.area
         if len(self.loc[self["issu_BDD"]==True])==len(self):
-            self.liste_echelle_shp_par_custom = ['MO']
+            self.liste_echelle_shp_par_CUSTOM = ['MO']
         if len(self)-len(self.loc[self["issu_BDD"]==True])>0:
-            self.liste_echelle_shp_par_custom = ['MO']
+            self.liste_echelle_shp_par_CUSTOM = ['MO']
         if len(self.loc[self["issu_BDD"]==True])==0:
-            self.liste_echelle_shp_par_custom = []
+            self.liste_echelle_shp_par_CUSTOM = []
         if len(self.loc[self["issu_BDD"]==False])>0:
             for echelle_gdf,gdf_a_check in dict_gdf_a_check.items():
-                croisement_custom_BBD_MO = gpd.overlay(self.loc[self['issu_BDD']==False], gdf_a_check, how='intersection')
-                croisement_custom_BBD_MO['surface_finale'] = croisement_custom_BBD_MO.geometry.area
-                croisement_custom_BBD_MO['ratio_decoup'] = croisement_custom_BBD_MO['surface_finale']/croisement_custom_BBD_MO['surface_custom']
-                croisement_custom_BBD_MO['ratio_origin'] = croisement_custom_BBD_MO['surface_'+gdf_a_check.echelle_REF_shp]/croisement_custom_BBD_MO['surface_custom']
-                croisement_custom_BBD_MO = croisement_custom_BBD_MO.loc[croisement_custom_BBD_MO['ratio_decoup']>0.90]
-                croisement_custom_BBD_MO = croisement_custom_BBD_MO.loc[(croisement_custom_BBD_MO['ratio_origin']>0.90)&(croisement_custom_BBD_MO['ratio_origin']<1.10)]
-                if len(croisement_custom_BBD_MO)>0:
+                croisement_CUSTOM_BBD_MO = gpd.overlay(self.loc[self['issu_BDD']==False], gdf_a_check, how='intersection')
+                croisement_CUSTOM_BBD_MO['surface_finale'] = croisement_CUSTOM_BBD_MO.geometry.area
+                croisement_CUSTOM_BBD_MO['ratio_decoup'] = croisement_CUSTOM_BBD_MO['surface_finale']/croisement_CUSTOM_BBD_MO['surface_CUSTOM']
+                croisement_CUSTOM_BBD_MO['ratio_origin'] = croisement_CUSTOM_BBD_MO['surface_'+gdf_a_check.echelle_REF_shp]/croisement_CUSTOM_BBD_MO['surface_CUSTOM']
+                croisement_CUSTOM_BBD_MO = croisement_CUSTOM_BBD_MO.loc[croisement_CUSTOM_BBD_MO['ratio_decoup']>0.90]
+                croisement_CUSTOM_BBD_MO = croisement_CUSTOM_BBD_MO.loc[(croisement_CUSTOM_BBD_MO['ratio_origin']>0.90)&(croisement_CUSTOM_BBD_MO['ratio_origin']<1.10)]
+                if len(croisement_CUSTOM_BBD_MO)>0:
                     if echelle_gdf=='gdf_MO':
-                        croisement_custom_BBD_MO['NOM_MO'] = croisement_custom_BBD_MO['NOM_MO_2']
-                    dict_map_index_CODE = dict(zip(croisement_custom_BBD_MO['index'].to_list(),croisement_custom_BBD_MO['CODE_'+gdf_a_check.echelle_REF_shp].to_list()))
-                    dict_map_index_NOM = dict(zip(croisement_custom_BBD_MO['index'].to_list(),croisement_custom_BBD_MO[gdf_a_check.nom_entite_REF].to_list()))
-                    self['CODE_custom'] = self["index"].map(dict_map_index_CODE).fillna(self['CODE_custom'])
+                        croisement_CUSTOM_BBD_MO['NOM_MO'] = croisement_CUSTOM_BBD_MO['NOM_MO_2']
+                    dict_map_index_CODE = dict(zip(croisement_CUSTOM_BBD_MO['index'].to_list(),croisement_CUSTOM_BBD_MO['CODE_'+gdf_a_check.echelle_REF_shp].to_list()))
+                    dict_map_index_NOM = dict(zip(croisement_CUSTOM_BBD_MO['index'].to_list(),croisement_CUSTOM_BBD_MO[gdf_a_check.nom_entite_REF].to_list()))
+                    self['CODE_CUSTOM'] = self["index"].map(dict_map_index_CODE).fillna(self['CODE_CUSTOM'])
                     self['NOM_MO'] = self["index"].map(dict_map_index_NOM).fillna(self['NOM_MO'])
-                    self.liste_echelle_shp_par_custom.append(gdf_a_check.echelle_REF_shp)
+                    self.liste_echelle_shp_par_CUSTOM.append(gdf_a_check.echelle_REF_shp)
         return self 
 
     def recherche_CODE_MO_dans_BDD(self,dict_gdf_a_check):
         #Import info et gdf
         dict_df_info_shp = DictDfInfoShp({})
         dict_df_info_shp.creation_DictDfInfoShp()
-        self['nom_provi'] = self['NOM_custom']
-        self = ListGdfCustom.reset_CODE_MO_et_nom_org_eventuels(self)
-        self = ListGdfCustom.Attribution_CODE_MO_et_NOM_MO(self,dict_gdf_a_check)
-        self.loc[self['CODE_custom']=="",'NOM_custom'] = self.loc[self['CODE_custom']==""]['nom_provi']
-        self.loc[self['CODE_custom']=="",'CODE_custom'] = ['custom_' + str(x) for x in range(0,len(self.loc[self['CODE_custom']==""]))]
-        liste_col_a_garder = ['CODE_custom','NOM_custom','geometry_custom']
+        self['nom_provi'] = self['NOM_CUSTOM']
+        self = ListGdfCUSTOM.reset_CODE_MO_et_nom_org_eventuels(self)
+        self = ListGdfCUSTOM.Attribution_CODE_MO_et_NOM_MO(self,dict_gdf_a_check)
+        self.loc[self['CODE_CUSTOM']=="",'NOM_CUSTOM'] = self.loc[self['CODE_CUSTOM']==""]['nom_provi']
+        self.loc[self['CODE_CUSTOM']=="",'CODE_CUSTOM'] = ['CUSTOM_' + str(x) for x in range(0,len(self.loc[self['CODE_CUSTOM']==""]))]
+        liste_col_a_garder = ['CODE_CUSTOM','NOM_CUSTOM','geometry_CUSTOM']
         return self
 
 class GdfFondCarte(GdfCompletREF):

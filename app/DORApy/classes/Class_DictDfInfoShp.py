@@ -209,8 +209,8 @@ class DictDfInfoShp(dict):
              dict_dict_CODE_NOM['dict_CODE_NOM_'+df_REF_index.echelle_REF] = dict(zip(df_REF_index['CODE_'+df_REF_index.echelle_REF],df_REF_index[df_REF_index.colonne_nom_entite]))
          return dict_dict_CODE_NOM
 
-    def MAJ_info_REF_special(self,dict_relation_shp_liste,dict_custom_maitre):
-        if dict_custom_maitre.type_rendu=="special_MO_gestion_SAGE":
+    def MAJ_info_REF_special(self,dict_relation_shp_liste,dict_CUSTOM_maitre):
+        if dict_CUSTOM_maitre.type_rendu=="special_MO_gestion_SAGE":
             df_info_SAGE = self["df_info_SAGE"]
             dict_inv_MO_par_SAGE = {}
             for k,v in dict_relation_shp_liste['dict_liste_SAGE_par_MO'].items():
@@ -249,10 +249,10 @@ class DictDfInfoShp(dict):
         return dict_dict_info_REF
 
     def ajout_surface_ME(df_info_ME,dict_decoupREF):
-        df_info_ME = pd.merge(df_info_ME,dict_decoupREF['gdf_decoupME_custom'].gdf[['CODE_ME',"surface_ME"]],on="CODE_ME",how='left')
+        df_info_ME = pd.merge(df_info_ME,dict_decoupREF['gdf_decoupME_CUSTOM'].gdf[['CODE_ME',"surface_ME"]],on="CODE_ME",how='left')
         return df_info_ME
 
-    def boost_df_info_ME(dict_dict_info_REF,dict_relation_shp_liste,dict_custom_maitre):
+    def boost_df_info_ME(dict_dict_info_REF):
         df_pression_ME_AG = dataframe.import_pression()
         dict_conversion_pression = {0:"Inconnue",1:"Pas de pression",2:"Non signi",3:"Pression signi"}
         list_col_valeur = [x for x in list(df_pression_ME_AG) if x!="CODE_ME"]
@@ -288,7 +288,7 @@ class DictDfInfoShp(dict):
         return dict_dict_info_REF
 
     def ajout_surface_SME(df_info_SME,dict_decoupREF):
-        df_info_SME = pd.merge(df_info_SME,dict_decoupREF['gdf_decoupSME_custom'][['CODE_SME',"surface_SME"]],on="CODE_SME",how='left')
+        df_info_SME = pd.merge(df_info_SME,dict_decoupREF['gdf_decoupSME_CUSTOM'][['CODE_SME',"surface_SME"]],on="CODE_SME",how='left')
         df_info_SME["surface_SME"] = df_info_SME["surface_SME"]/1000000
         return df_info_SME
 

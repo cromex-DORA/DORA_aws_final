@@ -27,12 +27,12 @@ class dictGdfCompletREF(dict):
         return dictGdfCompletREF
 
 
-    def definition_gauche_droite_haut_bas_decoupREF_par_rapport_au_custom(self,dict_df_buffer_custom,CODE_custom):
+    def definition_gauche_droite_haut_bas_decoupREF_par_rapport_au_CUSTOM(self,dict_df_buffer_CUSTOM,CODE_CUSTOM):
         gdf_tempo = self.df
         gdf_tempo['geometry_point1_ligne_horizon'] = gpd.points_from_xy(0,gdf_tempo["centre_decoupREF"].y)
         gdf_tempo['geometry_point2_ligne_horizon'] = gpd.points_from_xy(1200000,gdf_tempo["centre_decoupREF"].y)
         gdf_tempo['ligne_horizon'] = gdf_tempo.apply(lambda x:geom.LineString([x['geometry_point1_ligne_horizon'], x['geometry_point2_ligne_horizon']]), axis=1)
-        gdf_tempo['multi_point_horizon'] = gdf_tempo.apply(lambda x:x['ligne_horizon'].intersection(dict_df_buffer_custom[CODE_custom]['geometry_custom_buffer']),axis=1)
+        gdf_tempo['multi_point_horizon'] = gdf_tempo.apply(lambda x:x['ligne_horizon'].intersection(dict_df_buffer_CUSTOM[CODE_CUSTOM].gdf_buffer['geometry_CUSTOM_buffer']),axis=1)
         gdf_tempo = gdf_tempo[["CODE_REF",'centre_decoupREF','multi_point_horizon']]
         gdf_tempo = gdf_tempo.set_geometry('multi_point_horizon')
         gdf_tempo = gdf_tempo.explode(index_parts=False)
@@ -49,7 +49,7 @@ class dictGdfCompletREF(dict):
         gdf_tempo['geometry_point1_ligne_verti'] = gpd.points_from_xy(gdf_tempo["centre_decoupREF"].x,6000000)
         gdf_tempo['geometry_point2_ligne_verti'] = gpd.points_from_xy(gdf_tempo["centre_decoupREF"].x,7200000)
         gdf_tempo['ligne_verti'] = gdf_tempo.apply(lambda x:geom.LineString([x['geometry_point1_ligne_verti'], x['geometry_point2_ligne_verti']]), axis=1)
-        gdf_tempo['multi_point_verti'] = gdf_tempo.apply(lambda x:x['ligne_verti'].intersection(dict_df_buffer_custom[CODE_custom]['geometry_custom_buffer']),axis=1)
+        gdf_tempo['multi_point_verti'] = gdf_tempo.apply(lambda x:x['ligne_verti'].intersection(dict_df_buffer_CUSTOM[CODE_CUSTOM].gdf_buffer['geometry_CUSTOM_buffer']),axis=1)
         gdf_tempo = gdf_tempo[["CODE_REF",'centre_decoupREF','multi_point_verti']]
         gdf_tempo = gdf_tempo.set_geometry('multi_point_verti')
         gdf_tempo = gdf_tempo.explode(index_parts=False)
@@ -68,33 +68,33 @@ class dictGdfCompletREF(dict):
         self.df['orient_BH'] = self.df['CODE_REF'].map(dict_orient_BH)
         return self
 
-    def isolation_gros_custom_a_reduire(self,dict_special_custom_a_reduire,projet):
-        liste_custom_a_reduire = list({k:v for k,v in dict_special_custom_a_reduire.items() if v["custom_a_reduire"]==True})
+    def isolation_gros_CUSTOM_a_reduire(self,dict_special_CUSTOM_a_reduire,projet):
+        liste_CUSTOM_a_reduire = list({k:v for k,v in dict_special_CUSTOM_a_reduire.items() if v["CUSTOM_a_reduire"]==True})
         echelle_REF_shp = projet.gdf_shp_MO.echelle_REF_shp
-        colonne_geometry_custom = projet.gdf_shp_MO.colonne_geometry
-        self['gdf_custom'] = self['gdf_custom'].loc[self['gdf_custom']['CODE_custom'].isin(liste_custom_a_reduire)]
-        self['gdf_custom'] = GdfCompletREF(self['gdf_custom'])
-        self['gdf_custom'].attribution_GdfCompletREF('custom')
-        for nom_gdf_REF in list(dict_special_custom_a_reduire.keys()):
-            if nom_gdf_REF not in liste_custom_a_reduire:
-                del dict_special_custom_a_reduire[nom_gdf_REF]
+        colonne_geometry_CUSTOM = projet.gdf_shp_MO.colonne_geometry
+        self['gdf_CUSTOM'] = self['gdf_CUSTOM'].loc[self['gdf_CUSTOM']['CODE_CUSTOM'].isin(liste_CUSTOM_a_reduire)]
+        self['gdf_CUSTOM'] = GdfCompletREF(self['gdf_CUSTOM'])
+        self['gdf_CUSTOM'].attribution_GdfCompletREF('CUSTOM')
+        for nom_gdf_REF in list(dict_special_CUSTOM_a_reduire.keys()):
+            if nom_gdf_REF not in liste_CUSTOM_a_reduire:
+                del dict_special_CUSTOM_a_reduire[nom_gdf_REF]
         return self
 
 
 
     def ajout_liste_CODE_REF_voisin(self,):
-        for CODE_custom in self:
-            self[CODE_custom]['gdf_decoupME_custom']['CODE_ME_voisin'] = None
-            for index, gdf_decoupME in self[CODE_custom]['gdf_decoupME_custom'].iterrows():   
+        for CODE_CUSTOM in self:
+            self[CODE_CUSTOM]['gdf_decoupME_CUSTOM']['CODE_ME_voisin'] = None
+            for index, gdf_decoupME in self[CODE_CUSTOM]['gdf_decoupME_CUSTOM'].iterrows():   
                 # get 'not disjoint' countries
-                liste_CODE_ME_voisin = self[CODE_custom]['gdf_decoupME_custom'][~self[CODE_custom]['gdf_decoupME_custom'].geometry.disjoint(gdf_decoupME.geometry)].CODE_ME.tolist()
+                liste_CODE_ME_voisin = self[CODE_CUSTOM]['gdf_decoupME_CUSTOM'][~self[CODE_CUSTOM]['gdf_decoupME_CUSTOM'].geometry.disjoint(gdf_decoupME.geometry)].CODE_ME.tolist()
                 # remove own name of the country from the list
                 liste_CODE_ME_voisin = [CODE_ME for CODE_ME in liste_CODE_ME_voisin if gdf_decoupME.CODE_ME != CODE_ME]
                 # add names of neighbors as NEIGHBORS value
-                self[CODE_custom]['gdf_decoupME_custom'].at[index, "liste_CODE_ME_voisin"] = ", ".join(liste_CODE_ME_voisin)
+                self[CODE_CUSTOM]['gdf_decoupME_CUSTOM'].at[index, "liste_CODE_ME_voisin"] = ", ".join(liste_CODE_ME_voisin)
 
-        for CODE_custom in self:
-            self[CODE_custom]['gdf_decoupME_custom']['liste_CODE_ME_voisin'] = [x.split(", ") for x in self[CODE_custom]['gdf_decoupME_custom']['liste_CODE_ME_voisin'].to_list()]
+        for CODE_CUSTOM in self:
+            self[CODE_CUSTOM]['gdf_decoupME_CUSTOM']['liste_CODE_ME_voisin'] = [x.split(", ") for x in self[CODE_CUSTOM]['gdf_decoupME_CUSTOM']['liste_CODE_ME_voisin'].to_list()]
         return self
 
 
@@ -165,16 +165,16 @@ class dictGdfCompletREF(dict):
 
 
     
-    def suppression_entite_hors_des_custom(self,projet=None):
+    def suppression_entite_hors_des_CUSTOM(self,projet=None):
         for echelle_shp_par_decoupage,shp_decoupREF in self.items():
             if projet!=None:
                 if projet.type_donnees=='action':
                     REF_entite = echelle_shp_par_decoupage[10:].split("_")[0]
                     REF_index = echelle_shp_par_decoupage[10:].split("_")[1]
-                    if REF_index!='custom':
-                        if 'gdf_decoup' + REF_entite + '_custom' in self:
-                            self[echelle_shp_par_decoupage] = self[echelle_shp_par_decoupage].loc[self[echelle_shp_par_decoupage]['CODE_'+REF_entite].isin(self['gdf_decoup' + REF_entite + '_custom']['CODE_'+REF_entite].to_list())]
-                            self[echelle_shp_par_decoupage] = self[echelle_shp_par_decoupage].loc[self[echelle_shp_par_decoupage]['CODE_'+REF_index].isin(self['gdf_decoup' + REF_index + '_custom']['CODE_'+REF_index].to_list())]
+                    if REF_index!='CUSTOM':
+                        if 'gdf_decoup' + REF_entite + '_CUSTOM' in self:
+                            self[echelle_shp_par_decoupage] = self[echelle_shp_par_decoupage].loc[self[echelle_shp_par_decoupage]['CODE_'+REF_entite].isin(self['gdf_decoup' + REF_entite + '_CUSTOM']['CODE_'+REF_entite].to_list())]
+                            self[echelle_shp_par_decoupage] = self[echelle_shp_par_decoupage].loc[self[echelle_shp_par_decoupage]['CODE_'+REF_index].isin(self['gdf_decoup' + REF_index + '_CUSTOM']['CODE_'+REF_index].to_list())]
         return self                
 
 
@@ -196,37 +196,37 @@ class dictGdfCompletREF(dict):
         self['dict_' + REF2 +'_par_' + REF1] = nouveau_dict
         return self
 
-    def extraction_dict_relation_shp_liste_a_partir_decoupREF_par_custom(self):
+    def extraction_dict_relation_shp_liste_a_partir_decoupREF_par_CUSTOM(self):
         class DictRelationListeREFparREF(dict):
             @property
             def _constructor(self):
                 return DictRelationListeREFparREF
         dict_relation_shp_liste = DictRelationListeREFparREF({})
-        for CODE_custom,dict_decoupREF in self.items():
-            dict_relation_shp_liste[CODE_custom] = {}
+        for CODE_CUSTOM,dict_decoupREF in self.items():
+            dict_relation_shp_liste[CODE_CUSTOM] = {}
             for echelle_shp_par_decoupage,shp_decoupREF in dict_decoupREF.items():
                 REF1 = echelle_shp_par_decoupage[10:].split("_")[0]
                 REF2 = echelle_shp_par_decoupage[10:].split("_")[1]
                 df_decoupREF_REF = shp_decoupREF.groupby('CODE_'+REF2).agg({'CODE_'+REF1:lambda x: list(x)})
                 df_decoupREF_REF.columns = ['liste_' + REF1 +'_par_' + REF2]
-                dict_relation_shp_liste[CODE_custom]['dict_liste_' + REF1 +'_par_' + REF2] = df_decoupREF_REF['liste_' + REF1 +'_par_' + REF2].to_list()[0]
+                dict_relation_shp_liste[CODE_CUSTOM]['dict_liste_' + REF1 +'_par_' + REF2] = df_decoupREF_REF['liste_' + REF1 +'_par_' + REF2].to_list()[0]
 
         return dict_relation_shp_liste
 
-    def extraction_dict_relation_shp_liste_a_partir_decoupREF_par_custom(self):
+    def extraction_dict_relation_shp_liste_a_partir_decoupREF_par_CUSTOM(self):
         class DictRelationListeREFparREF(dict):
             @property
             def _constructor(self):
                 return DictRelationListeREFparREF
         dict_relation_shp_liste = DictRelationListeREFparREF({})
-        for CODE_custom,dict_decoupREF in self.items():
-            dict_relation_shp_liste[CODE_custom] = {}
+        for CODE_CUSTOM,dict_decoupREF in self.items():
+            dict_relation_shp_liste[CODE_CUSTOM] = {}
             for echelle_shp_par_decoupage,shp_decoupREF in dict_decoupREF.items():
                 REF1 = echelle_shp_par_decoupage[10:].split("_")[0]
                 REF2 = echelle_shp_par_decoupage[10:].split("_")[1]
                 df_decoupREF_REF = shp_decoupREF.groupby('CODE_'+REF2).agg({'CODE_'+REF1:lambda x: list(x)})
                 df_decoupREF_REF.columns = ['liste_' + REF1 +'_par_' + REF2]
-                dict_relation_shp_liste[CODE_custom]['dict_liste_' + REF1 +'_par_' + REF2] = df_decoupREF_REF['liste_' + REF1 +'_par_' + REF2].to_list()[0]
+                dict_relation_shp_liste[CODE_CUSTOM]['dict_liste_' + REF1 +'_par_' + REF2] = df_decoupREF_REF['liste_' + REF1 +'_par_' + REF2].to_list()[0]
 
         return dict_relation_shp_liste
 
@@ -243,23 +243,23 @@ class dictGdfCompletREF(dict):
                 dict_nb_REF['dict_nb_' + REF1 +'_par_' + REF2][nom_dict_liste_REF1_par_REF2] = len(liste_REF1_par_REF2)
         return dict_nb_REF
     
-    def actualisation_dict_relation_shp_liste(dict_custom_maitre,dict_relation_shp_liste,dict_df_donnees):
+    def actualisation_dict_relation_shp_liste(dict_CUSTOM_maitre,dict_relation_shp_liste,dict_df_donnees):
         #Gérer les CODE_REF à rajouter dans les dict relations en fonction du type de projet
         if 'BDD_DORA' in dict_df_donnees:
             df_BDD_DORA = dict_df_donnees['BDD_DORA'].df
             
-        if dict_custom_maitre.type_rendu=='carte' and dict_custom_maitre.type_donnees == 'action':
-            if dict_custom_maitre.echelle_REF == 'MO' and (dict_custom_maitre.echelle_base_REF == 'ME' or dict_custom_maitre.echelle_base_REF == 'SME'):
-                for nom_custom,entite_custom in dict_custom_maitre.items():
-                    CODE_custom =  entite_custom.CODE_custom
-                    echelle_REF_custom = entite_custom.echelle_REF
-                    echelle_base_REF = entite_custom.echelle_base_REF
-                    df_actions_custom = df_BDD_DORA.loc[df_BDD_DORA["CODE_"+echelle_REF_custom]==CODE_custom]
-                    liste_CODE_echelle_base_REF = df_actions_custom.loc[~(df_actions_custom["CODE_" + echelle_REF_custom].isnull())]["CODE_" + echelle_base_REF].to_list()
+        if dict_CUSTOM_maitre.type_rendu=='carte' and dict_CUSTOM_maitre.type_donnees == 'action':
+            if dict_CUSTOM_maitre.echelle_REF == 'MO' and (dict_CUSTOM_maitre.echelle_base_REF == 'ME' or dict_CUSTOM_maitre.echelle_base_REF == 'SME'):
+                for nom_CUSTOM,entite_CUSTOM in dict_CUSTOM_maitre.items():
+                    CODE_CUSTOM =  entite_CUSTOM.CODE_CUSTOM
+                    echelle_REF_CUSTOM = entite_CUSTOM.echelle_REF
+                    echelle_base_REF = entite_CUSTOM.echelle_base_REF
+                    df_actions_CUSTOM = df_BDD_DORA.loc[df_BDD_DORA["CODE_"+echelle_REF_CUSTOM]==CODE_CUSTOM]
+                    liste_CODE_echelle_base_REF = df_actions_CUSTOM.loc[~(df_actions_CUSTOM["CODE_" + echelle_REF_CUSTOM].isnull())]["CODE_" + echelle_base_REF].to_list()
                     liste_CODE_echelle_base_REF = list(set(liste_CODE_echelle_base_REF))
-                    dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_custom'][CODE_custom] = dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_custom'][CODE_custom] + liste_CODE_echelle_base_REF
-                    dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_custom'][CODE_custom] = list(set(dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_custom'][CODE_custom]))
-                    dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_custom'][CODE_custom] = [x for x in dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_custom'][CODE_custom] if x!='nan']
+                    dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_CUSTOM'][CODE_CUSTOM] = dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_CUSTOM'][CODE_CUSTOM] + liste_CODE_echelle_base_REF
+                    dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_CUSTOM'][CODE_CUSTOM] = list(set(dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_CUSTOM'][CODE_CUSTOM]))
+                    dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_CUSTOM'][CODE_CUSTOM] = [x for x in dict_relation_shp_liste['dict_liste_' + echelle_base_REF + '_par_CUSTOM'][CODE_CUSTOM] if x!='nan']
         return dict_relation_shp_liste    
     
     def mise_a_jour_fichier_info_relation_shp(self,dict_relation_shp_liste):
