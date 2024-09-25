@@ -7,10 +7,9 @@ from app.DORApy.classes.Class_DictDfInfoShp import DictDfInfoShp
 from app.DORApy.classes import Class_NDictGdf,Class_NGdfREF
 from app.DORApy.classes.Class_NDictGdf import NDictGdf
 from app.DORApy.classes.Class_NGdfREF import NGdfREF
-from app.DORApy import creation_carte
+#from app.DORApy import creation_carte
 import os
-import geopandas as gpd
-from tempfile import NamedTemporaryFile
+
 
 bucket_files_common = os.getenv('S3_BUCKET_COMMON_FILES')
 bucket_files_custom = os.getenv('S3_BUCKET_USERS_FILES')
@@ -26,7 +25,7 @@ dict_custom_maitre.set_config_type_projet(type_rendu='carte',type_donnees='actio
 dict_dict_info_REF = DictDfInfoShp({})
 dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()
 dict_geom_REF = Class_NDictGdf.NDictGdf({})
-dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO","DEP","PPG","ME"])
+dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["DEP","CE_ME"])
 
     #Relation géographiques entre custom et référentiels
 dict_decoupREF = Class_NDictGdf.creation_dict_decoupREF(dict_geom_REF,dict_custom_maitre)
@@ -35,8 +34,9 @@ dict_relation_shp_liste = Class_NDictGdf.extraction_dict_relation_shp_liste_a_pa
 
 
 CODE_DEP = 33
-dict_geom_MO = NDictGdf.recuperation_gdf_REF(dict_geom_REF,"ME")
-dict_geom_MO = NGdfREF.selection_par_DEP(dict_geom_MO,"ME",CODE_DEP,dict_relation_shp_liste)
+dict_geom_MO = NDictGdf.recuperation_gdf_REF(dict_geom_REF,"CE_ME")
+dict_geom_MO = NGdfREF.selection_par_DEP(dict_geom_MO,"CE_ME",CODE_DEP,dict_relation_shp_liste)
+dict_geom_MO = NGdfREF.export_gdf_pour_geojson(dict_geom_MO)
 
 
 #Class_NDictGdf.NDictGdf.actualisation_shp(dict_geom_REF,"MO")

@@ -1,8 +1,8 @@
 /* Conteneur principal de l'application utilisant CSS Grid */
 .app-container {
     display: grid;
-    grid-template-columns: 1fr 1.5fr; /* 2 colonnes de largeur égale */
-    grid-template-rows: 1fr 1fr;    /* 2 rangées de hauteur égale */
+    grid-template-columns: 1fr 2fr; /* 2 colonnes de largeur égale */
+    grid-template-rows: 1.5fr 1fr;    /* 2 rangées de hauteur égale */
     height: 100vh; /* Hauteur totale de la vue */
     width: 100vw;  /* Largeur totale de la vue */
     gap: 10px; /* Espace entre les éléments de la grille */
@@ -20,21 +20,23 @@
 /* Conteneur pour la carte */
 .map-container {
     display: flex;
-    justify-content: center; /* Centre horizontalement */
-    align-items: center; /* Centre verticalement */
-    height: 100%; /* Prend toute la hauteur disponible du conteneur parent */
-    width: 100%;  /* Prend toute la largeur disponible du conteneur parent */
-    grid-column: 2 / 3; /* Occupe la deuxième colonne */
-    grid-row: 1 / 2;    /* Occupe la première rangée */
+    justify-content: flex-start; /* Start from the left */
+    align-items: stretch; /* Ensure the map stretches to fill the height */
+    height: 100%; /* Full height of the container */
+    width: 100%;  /* Full width of the container */
+    grid-column: 2 / 3; /* Second column */
+    grid-row: 1 / 2;    /* First row */
 }
 
 /* Style pour la carte elle-même */
 .map {
-    width: 60%; /* La carte occupe 80% de la largeur du conteneur parent */
-    height: 100%; /* La carte prend toute la hauteur disponible du conteneur parent */
-    border: 1px solid #ddd; /* Ajoutez une bordure si nécessaire */
-    border-radius: 8px; /* Ajoutez un rayon de bordure si nécessaire */
+    width: 90%; /* Take 100% width minus a 10px margin to prevent overlap with the scrollbar */
+    height: 100%; /* Full height of the container */
+    border: 2px solid #ddd; /* Optional border */
+    border-radius: 8px; /* Optional border radius */
+    margin-right: 10px; /* Add a small right margin to avoid clipping by the scrollbar */
 }
+
 
 /* Conteneur pour une autre section d'informations */
 .info-panel-section {

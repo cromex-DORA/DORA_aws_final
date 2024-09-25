@@ -41,6 +41,9 @@ export const fetchSMEThunk = createAsyncThunk('geojson/fetchSME', async () => {
 export const fetchROEThunk = createAsyncThunk('geojson/fetchROE', async () => {
   return await fetchGeoJSON('ROE');
 });
+export const fetchCEMEThunk = createAsyncThunk('geojson/fetchCE_ME', async () => {
+  return await fetchGeoJSON('CE_ME');
+});
 
 // Slice pour gérer les états des données GeoJSON
 const geojsonSlice = createSlice({
@@ -56,6 +59,7 @@ const geojsonSlice = createSlice({
     me: null,
     sme: null,
     roe: null,
+    ceme: null,
     error: null,
   },
   reducers: {},
@@ -91,6 +95,9 @@ const geojsonSlice = createSlice({
       .addCase(fetchROEThunk.fulfilled, (state, action) => {
         state.roe = action.payload;
       })
+      .addCase(fetchCEMEThunk.fulfilled, (state, action) => {
+        state.ceme = action.payload;
+      })      
       .addMatcher(action => action.type.endsWith('/rejected'), (state, action) => {
         state.error = action.error.message;
         console.error("Fetching failed:", action.error.message);

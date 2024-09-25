@@ -56,8 +56,8 @@ class NDictGdf(dict):
         if echelle_REF=="ROE":
             chemin_fichiers_shp = "shp_files\\ROE\\ROE_AG_2023.gpkg"
             type_geom = "point"
-        if echelle_REF=="ME_CE":
-            chemin_fichiers_shp = "shp_files\\ME\\ME_CE_AG_2022.gpkg"
+        if echelle_REF=="CE_ME":
+            chemin_fichiers_shp = "shp_files\\CE_ME\\CE_ME_AG_complet.gpkg"
             type_geom = "lignes" 
         chemin_fichiers_shp = connect_path.get_file_path_racine(chemin_fichiers_shp)
         gdf_REF = NGdfREF(echelle_REF,chemin_fichiers_shp,type_geom)
@@ -201,15 +201,19 @@ def creation_dict_decoupREF(self,dict_custom_maitre=None):
                 self['gdf_custom'] = dict_custom_maitre.gdf_custom
         return self
 
+    def suppression_CE_ME(liste_combinaison_REF):
+        liste_combinaison_REF = [x for x in liste_combinaison_REF if x!="CE_ME"]
+        return liste_combinaison_REF
+
     def hierarchisation_liste_echelle(liste_combinaison_REF):
-        list_hierarchie_shp_hydro = ['custom','DEP','CT','EPTB','SAGE','MO','PPG','BVG','ME','SME','ROE']
+        list_hierarchie_shp_hydro = ['custom','DEP','CT','EPTB','SAGE','MO','PPG','BVG','ME','SME','ROE',"CE_ME"]
         dict_hierarchie_hydro = {}
         for numero_hierarchie,echelle_shp in enumerate(list_hierarchie_shp_hydro):
             dict_hierarchie_hydro[echelle_shp] = numero_hierarchie
         dict_tempo_shp = {x:dict_hierarchie_hydro[x] for x in liste_combinaison_REF}
         dict_tempo_shp = dict(sorted(dict_tempo_shp.items(), key=lambda x: x[1], reverse=False))
         liste_combinaison_REF = list(dict_tempo_shp)
-        return liste_combinaison_REF    
+        return liste_combinaison_REF
 
     def decoupage_entite_par_entite(self,liste_combinaison_REF,dict_custom_maitre=None):
         dict_geomREF_decoupREF = {}
@@ -300,14 +304,15 @@ def creation_dict_decoupREF(self,dict_custom_maitre=None):
     def suppression_CODE_REF_vide(self):
         for echelle_shp_par_decoupage,shp_decoupREF in self.items():
             if len(shp_decoupREF.gdf)>0:
-                REF_entite = echelle_shp_par_decoupage[10:].split("_")[0]
-                REF_index = echelle_shp_par_decoupage[10:].split("_")[1]
+                REF_entite = shp_decoupREF.echelle_maitre
+                REF_index = shp_decoupREF.echelle_noob
                 shp_decoupREF.gdf = shp_decoupREF.gdf.loc[~shp_decoupREF.gdf["CODE_"+REF_entite].isnull()]
                 shp_decoupREF.gdf = shp_decoupREF.gdf.loc[~shp_decoupREF.gdf["CODE_"+REF_index].isnull()]
         return self
     
     liste_echelle_REF_projet = ajout_custom_liste_echelle_REF(self,dict_custom_maitre)
     self = ajout_custom_dict_geom_REF(self,dict_custom_maitre)
+    #liste_combinaison_REF = suppression_CE_ME(liste_echelle_REF_projet)
     liste_combinaison_REF = hierarchisation_liste_echelle(liste_echelle_REF_projet)
     liste_combinaison_REF = list(itertools.combinations(liste_combinaison_REF, 2))
     liste_combinaison_REF = [list(x) for x in liste_combinaison_REF]

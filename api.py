@@ -24,7 +24,7 @@ dict_custom_maitre.set_config_type_projet(type_rendu='carte',type_donnees='actio
 dict_dict_info_REF = DictDfInfoShp({})
 dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()
 dict_geom_REF = Class_NDictGdf.NDictGdf({})
-dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO","DEP","PPG","ME"])
+dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_custom_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO","DEP","PPG","ME","CE_ME"])
 
     #Relation géographiques entre custom et référentiels
 dict_decoupREF = Class_NDictGdf.creation_dict_decoupREF(dict_geom_REF,dict_custom_maitre)
@@ -92,6 +92,29 @@ def get_PPG_geojson():
 @api_bp.route('/api/ME', methods=['GET'])
 def get_ME_geojson():
     type_REF = "ME"
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'message': 'Token is missing'}), 403
+
+    try:
+        decoded_token = jwt.decode(token, SECRET_JKEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired'}), 403
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid token'}), 403
+
+    CODE_DEP = decoded_token['CODE_DEP']
+    print(CODE_DEP, file=sys.stderr)
+    dict_geom_TYPE_REF = NDictGdf.recuperation_gdf_REF(dict_geom_REF,type_REF)
+    dict_geom_TYPE_REF = NGdfREF.selection_par_DEP(dict_geom_TYPE_REF,type_REF,CODE_DEP,dict_relation_shp_liste)
+    geojson_data_ME_gemapi=NGdfREF.export_gdf_pour_geojson(dict_geom_TYPE_REF)
+
+    response = geojson_data_ME_gemapi
+    return jsonify(response), 200
+
+@api_bp.route('/api/CE_ME', methods=['GET'])
+def get_CE_ME_geojson():
+    type_REF = "CE_ME"
     token = request.headers.get('Authorization')
     if not token:
         return jsonify({'message': 'Token is missing'}), 403

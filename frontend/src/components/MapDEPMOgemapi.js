@@ -45,10 +45,6 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     const geoJsonLayerRef = useRef();
 
 
-    // Ajout de l'état pour les catégories PPG et ME
-    const [showPPG, setShowPPG] = useState(true); // Afficher PPG par défaut
-    const [showME, setShowME] = useState(true);   // Afficher ME par défaut
-
     const openModal = () => {
         setIsModalOpen(true);
     };
@@ -107,15 +103,16 @@ useEffect(() => {
                 // On s'assure que les MO du type sélectionné sont affichés
                 const isMatchingTypeRef = selectedType ? typeREF === selectedType : true;
 
-                // Affiche les polygones qui correspondent au filtre de TYPE_MO 
-                // et inclut les PPG/ME si sélectionnés
-                return passesFilter || (isMatchingTypeRef && (typeREF === 'ME' || typeREF === 'PPG'));
+                // Affiche les polygones qui correspondent au filtre de TYPE_MO,
+                // inclut les PPG/ME si sélectionnés et toujours affiche CE_ME
+                return passesFilter || isMatchingTypeRef || typeREF === 'CE_ME';
             })
         };
 
         setFilteredGeoJsonData(updatedFilteredData);
     }
 }, [filter, selectedType, geoJsonData]);
+
 
     // Update GeoJSON layer style when highlightedFolderId changes
     useEffect(() => {
@@ -157,7 +154,8 @@ useEffect(() => {
                 layer.bindTooltip(feature.properties.ALIAS, {
                     permanent: true,
                     direction: "center",
-                    className: "polygon-label" // Style des étiquettes
+                    className: "polygon-label",
+                    interactive: false   // Style des étiquettes
                 });
             }
         });
@@ -199,42 +197,59 @@ useEffect(() => {
         return <div>Loading map...</div>;
     }
 
-    const style = (feature, isHighlighted) => {
-        const category = feature.properties['type_REF'];
+const style = (feature, isHighlighted) => {
+    const category = feature.properties['type_REF'];
 
-        if (isHighlighted) {
-            return {
-                color: 'yellow', // Couleur pour le surlignage
-                weight: 5,
-                fillOpacity: 0.6
-            };
-        }
+    if (isHighlighted) {
+        return {
+            color: 'yellow', // Couleur pour le surlignage
+            weight: 5,
+            fillOpacity: 0.6
+        };
+    }
 
-        if (feature.properties['type_REF'] === 'MO') {
-            return {
-                color: 'blue', // Couleur des contours
-                weight: 5, // Épaisseur des contours
-                fillColor: 'rgba(0, 0, 255, 0.1)', // Bleu très transparent pour le remplissage
-                fillOpacity: 0.1, // Transparence du remplissage
-                opacity: 1, // Opacité du contour
-            };
-        }
-        if (feature.properties['type_REF'] === 'PPG') {
-            return {
-                color: 'gray', // Couleur pour PPG et ME
-                weight: 2,
-                fillOpacity: 0.3
-            };
-        }
-        if (feature.properties['type_REF'] === 'ME') {
-            return {
-                color: 'gray', // Couleur pour PPG et ME
-                weight: 2,
-                fillOpacity: 0.3
-            };
-        }
-        return {};
-    };
+    // Style pour les MO (vert)
+    if (feature.properties['type_REF'] === 'MO') {
+        return {
+            color: 'green', // Couleur des contours en vert
+            weight: 5, // Épaisseur des contours
+            fillColor: 'rgba(0, 255, 0, 0.1)', // Vert très transparent pour le remplissage
+            fillOpacity: 0.1, // Transparence du remplissage
+            opacity: 1, // Opacité du contour
+        };
+    }
+
+    // Style pour les PPG
+    if (feature.properties['type_REF'] === 'PPG') {
+        return {
+            color: 'gray', // Couleur pour PPG
+            weight: 2,
+            fillOpacity: 0.3
+        };
+    }
+
+    // Style pour les ME
+    if (feature.properties['type_REF'] === 'ME') {
+        return {
+            color: 'gray', // Couleur pour ME
+            weight: 2,
+            fillOpacity: 0.3
+        };
+    }
+
+    // Style pour CE_ME (bleu)
+    if (feature.properties['type_REF'] === 'CE_ME') {
+        return {
+            color: 'blue', // Couleur des contours en bleu
+            weight: 1, // Épaisseur des contours
+            fillColor: 'rgba(0, 0, 255, 0.2)', // Bleu plus transparent pour le remplissage
+            fillOpacity: 0.4, // Transparence du remplissage
+            opacity: 1, // Opacité du contour
+        };
+    }
+
+    return {};
+};
 
 
     return (
@@ -261,6 +276,17 @@ useEffect(() => {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
+
+                {/* Rendu des polygones CE_ME (doit être en dernier pour être au-dessus) */}
+                {filteredGeoJsonData && (
+                    <GeoJSON
+                        key={`ceme-${filteredGeoJsonData.features.length}`} // Utilisation d'une clé unique pour MO
+                        data={filteredGeoJsonData.features.filter(feature => feature.properties['type_REF'] === 'CE_ME')}
+                        style={style}
+                        onEachFeature={onEachFeature}
+                        ref={geoJsonLayerRef}
+                    />
+                )}        
 
                 {/* Rendu des polygones PPG */}
                 {filteredGeoJsonData && (
@@ -294,6 +320,8 @@ useEffect(() => {
                         ref={geoJsonLayerRef}
                     />
                 )}
+
+        
 
                 {selectedBounds && <ZoomToBounds bounds={selectedBounds} />}
                 <MapEvents setZoomLevel={setZoomLevel} />

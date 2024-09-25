@@ -1,22 +1,32 @@
-/* Assurez-vous que la carte occupe tout l'espace du conteneur parent */
+/* Conteneur principal qui contient la carte et la sidebar */
 .map-container {
-    position: relative; /* Position relative pour les éléments positionnés à l'intérieur */
-    height: 100%; /* Hauteur de la carte égale à celle du conteneur */
-    width: 100%;  /* Largeur de la carte égale à celle du conteneur */
+    display: flex; /* Utilisation de flexbox pour aligner les éléments horizontalement */
+    height: 100%; /* Assurez-vous que le conteneur prend toute la hauteur de l'écran */
+    width: 100%; /* Prend toute la largeur du conteneur parent */
 }
 
-/* Ajustez la taille de la carte ici si nécessaire */
-.map {
-    width: 80%; /* 80% de la largeur totale pour la carte */
-    position: relative;
-}
-
+/* Sidebar (légende) à gauche */
 .sidebar {
-    width: 20%; /* 20% de la largeur totale pour la colonne du filtre et du bouton */
-    padding: 10px; /* Espacement autour du contenu */
-    box-sizing: border-box; /* Inclure le padding dans la largeur totale */
+    width: 15%; /* 20% de la largeur totale pour la légende ou les filtres */
+    padding: 10px;
+    box-sizing: border-box; /* Inclut le padding dans la largeur totale */
+    background-color: #f8f9fa; /* Couleur de fond pour démarquer la légende */
+    overflow-y: auto; /* Ajout du défilement si le contenu dépasse la hauteur */
 }
 
-.map-element {
-    height: 100vh; /* Assurez-vous que la carte prend toute la hauteur de l'écran */
+/* Carte à droite */
+.map {
+    width: 85%; /* 80% de la largeur totale pour la carte */
+    height: 100%; /* Prend toute la hauteur de l'écran */
+}
+
+/* Optionnel : rendre la légende plus esthétique */
+.sidebar .filter-section {
+    margin-bottom: 20px;
+}
+
+/* Ajuste les éléments internes de la légende/filtres si nécessaire */
+.sidebar .import-button {
+    margin-top: 20px;
+    width: 100%; /* Assure que le bouton prenne toute la largeur */
 }

@@ -5,13 +5,14 @@ import FolderList from './FolderList';
 import Breadcrumb from './Breadcrumb'; // Import du Breadcrumb
 import { jwtDecode } from 'jwt-decode'; // Import correct
 import './FolderContent.css';
-import { fetchMOThunk, fetchPPGThunk, fetchMEThunk } from '../features/geojson/geojsonSlice';
+import { fetchMOThunk, fetchPPGThunk, fetchMEThunk, fetchCEMEThunk } from '../features/geojson/geojsonSlice';
 
 const FolderContent = () => {  // Reçois le département en tant que prop
     const dispatch = useDispatch();
     const geoJsonMO = useSelector((state) => state.geojson.mo);
     const geoJsonME = useSelector((state) => state.geojson.me);
     const geoJsonPPG = useSelector((state) => state.geojson.ppg);
+    const geoJsonCEME = useSelector((state) => state.geojson.ceme);
     const [department, setDepartment] = useState('');
     const [folders, setFolders] = useState([]);
     const [files, setFiles] = useState([]);
@@ -26,7 +27,8 @@ const FolderContent = () => {  // Reçois le département en tant que prop
         features: [
             ...(geoJsonMO?.features || []),
             ...(geoJsonME?.features || []),
-            ...(geoJsonPPG?.features || [])
+            ...(geoJsonPPG?.features || []),
+            ...(geoJsonCEME?.features || [])
         ]
     };
 
@@ -44,6 +46,7 @@ const FolderContent = () => {  // Reçois le département en tant que prop
         dispatch(fetchMOThunk());
         dispatch(fetchPPGThunk());
         dispatch(fetchMEThunk());
+        dispatch(fetchCEMEThunk());
     }, [dispatch]);
 
     useEffect(() => {

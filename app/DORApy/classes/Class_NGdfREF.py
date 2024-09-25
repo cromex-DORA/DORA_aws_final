@@ -30,7 +30,10 @@ class NGdfREF:
     def _ajout_gdf(self,path,REF):
         gdf = gpd.read_file(path)
         gdf = gdf.to_crs(2154)
-        gdf['surface_'+REF] = gdf.area
+        if self.type_de_geom == "polygon":
+            gdf['surface_'+REF] = gdf.area
+        if self.type_de_geom == "lignes":
+            gdf['longueur_'+REF] = gdf.length  
         gdf = gdf.rename(columns={'geometry':'geometry_'+REF})
         gdf.set_geometry('geometry_'+REF)
         if REF=="ROE":
@@ -43,6 +46,9 @@ class NGdfREF:
             gdf = gdf.rename({'CODE_DEPT':'CODE_DEP','NOM_DEPT':'NOM_DEP'},axis=1)
             gdf['CODE_DEP'] = gdf['CODE_DEP'].astype(str)
             gdf['NOM_DEP'] = gdf['NOM_DEP'].astype(str)
+        if REF =="CE_ME" :
+            gdf = gdf.rename({'eu_cd':'CODE_CE_ME','nom_masse_':'NOM_CE_ME'},axis=1) 
+            gdf = gdf[['CODE_CE_ME','NOM_CE_ME','longueur_CE_ME','geometry_CE_ME']]  
         self.gdf = gdf
 
     def _scan_file(self,path):
