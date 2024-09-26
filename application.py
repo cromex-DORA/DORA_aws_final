@@ -195,8 +195,13 @@ def verif_tableau_DORA():
     except jwt.InvalidTokenError:
         return jsonify({'message': 'Invalid token'}), 403 
 
+
+    file = request.form.get('file')
     NOM_MO = request.form.get('NOM_MO')
-    check_tableau_DORA.verification_tableau_vierge_DORA([NOM_MO])
+    CODE_MO = request.form.get('CODE_MO')
+    file_name = file.filename
+    connect_path.upload_file_vers_s3("CUSTOM",file,os.path.join("MO_gemapi",CODE_MO,file_name))
+    #check_tableau_DORA.verification_tableau_vierge_DORA([NOM_MO])
     return jsonify({'message': 'Error processing files'}), 500
 
 @app.route('/', defaults={'path': ''})

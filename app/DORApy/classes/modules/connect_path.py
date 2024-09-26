@@ -3,6 +3,7 @@ import boto3
 import os
 import io
 from tempfile import NamedTemporaryFile
+import pandas as pd
 load_dotenv()
 
 environment = os.getenv('ENVIRONMENT')
@@ -56,11 +57,11 @@ def conv_s3_obj_vers_python_obj(type_bucket,file_name):
         obj_python = csv_obj['Body'].read()
     return obj_python
 
-def get_file_path_racine(file_name):
+def get_file_path_racine(file_name,type_bucket=bucket_files_common):
     if environment == 'production':
         file_name = file_name.replace("\\","/")
         # Chemin pour accéder aux fichiers S3
-        s3_file_path = f's3://{bucket_files_common}/{file_name}'
+        s3_file_path = f's3://{type_bucket}/{file_name}'
         return s3_file_path
     if environment == 'developpement':
         file_name = file_name.replace("\\","/")
@@ -79,6 +80,12 @@ def upload_file_vers_s3(type_bucket,file,path):
     if type_bucket == "CUSTOM":
         nom_bucket = bucket_files_CUSTOM
     extension = os.path.splitext(path)[1][1:]
+    if isinstance(file, pd.DataFrame):
+        csv_buffer = io.StringIO()
+        file.to_csv(csv_buffer, index=False)
+        # Uploader sur S3
+
+        s3.put_object(Bucket=nom_bucket, Key=path, Body=csv_buffer.getvalue())   
     if extension == "xlsx":
         upload_workbook(file, nom_bucket, path)
     

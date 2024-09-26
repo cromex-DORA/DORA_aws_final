@@ -24,8 +24,8 @@ dict_CUSTOM_maitre.set_config_type_projet(type_rendu='carte',type_donnees='actio
 dict_dict_info_REF = DictDfInfoShp({})
 dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()
 dict_geom_REF = Class_NDictGdf.NDictGdf({})
-#dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO","DEP","PPG","ME","CE_ME"])
-dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO"])
+dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO","DEP","PPG","ME","CE_ME"])
+#dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO"])
     #Relation géographiques entre CUSTOM et référentiels
 dict_decoupREF = Class_NDictGdf.creation_dict_decoupREF(dict_geom_REF,dict_CUSTOM_maitre)
     #Relation géographiques entre référentiels

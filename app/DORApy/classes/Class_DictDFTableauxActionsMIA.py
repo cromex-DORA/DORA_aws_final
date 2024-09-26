@@ -17,6 +17,9 @@ from app.DORApy.classes.Class_dictGdfCompletREF import dictGdfCompletREF
 from app.DORApy.classes import Class_Folder
 from app.DORApy.classes.modules import config_DORA
 
+
+bucket_files_common = os.getenv('S3_BUCKET_COMMON_FILES')
+bucket_files_CUSTOM = os.getenv('S3_BUCKET_USERS_FILES')
 dict_config_espace,dict_config_police = config_DORA.creation_dicts_config()
 dict_dict_config_df_actions_MIA = config_DORA.creation_dict_dict_config_df_actions_MIA()
 
@@ -35,10 +38,10 @@ class DictDFTableauxActionsMIA(dict):
             CODE_REF = dict_CUSTOM.CODE_CUSTOM
             nom_fichier = "fichier_rempli_" + dict_CUSTOM.NOM_CUSTOM + ".xlsx"
 
-            chemin_fichier_excel_actions = connect_path.get_file_path_racine(os.path.join(chemin_dossier,CODE_REF,nom_fichier))
-            print(chemin_fichier_excel_actions, file=sys.stderr)
-
-            dict_dict_df_actions_originaux[dict_CUSTOM.NOM_CUSTOM] = DfTableauxActionsMIA(chemin_fichier_excel_actions)
+            self.complet_path = connect_path.get_file_path_racine(os.path.join(chemin_dossier,CODE_REF,nom_fichier))
+            self.relative_path = os.path.join(chemin_dossier,CODE_REF,nom_fichier)
+            self.folder_path = os.path.join(chemin_dossier,CODE_REF)
+            dict_dict_df_actions_originaux[dict_CUSTOM.NOM_CUSTOM] = DfTableauxActionsMIA(self.relative_path)
         return dict_dict_df_actions_originaux
         
     def recuperation_dict_tableaux_actions_MIA_bis(dict_dict_info_REF=None,self=None,forme="remplis"):

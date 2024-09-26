@@ -343,7 +343,7 @@ def extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_CUSTOM_maitre=Non
         def __getitem__(self, key):
             print(key, file=sys.stderr)
             if key not in self:
-                print("coucou",file=sys.stderr)
+
                 REF1 = key.split("_")[2]
                 REF2 = key.split("_")[4]
                 if "dict_liste_" + REF1 + "_par_" + REF2:
@@ -353,10 +353,16 @@ def extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_CUSTOM_maitre=Non
         def create_key(self,key):
             REF1 = key.split("_")[2]
             REF2 = key.split("_")[4]
+
             dict_temporaire_inverse = DictListeREFparREF({})
-            for k,v in self['dict_liste_' + REF2 +'_par_' + REF1].items():
-                for x in v:
-                    dict_temporaire_inverse.setdefault(x,[]).append(k)
+            
+            try:
+                for k, v in self['dict_liste_' + REF2 + '_par_' + REF1].items():
+                    for x in v:
+                        dict_temporaire_inverse.setdefault(x, []).append(k)
+            except KeyError:
+                print(f"Clé manquante pour 'dict_liste_{REF2}_par_{REF1}'", file=sys.stderr)
+                raise
 
             dict_temporaire_inverse.REF_maitre = REF1
             dict_temporaire_inverse.REF_noob = REF2

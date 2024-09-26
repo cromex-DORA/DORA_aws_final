@@ -3,7 +3,7 @@ import pandas as pd
 import geopandas as gpd
 import glob
 
-from app.DORApy.classes.modules import CUSTOM,dataframe,tableau_excel
+from app.DORApy.classes.modules import CUSTOM,dataframe,tableau_excel,connect_path
 from app.DORApy.classes import Class_NGdfREF
 
 from app.DORApy.classes.Class_DictBoiteComplete import DictBoiteComplete
@@ -673,29 +673,30 @@ class DictCustomMaitre(dict):
         return self
 
     def ajout_df_info_CUSTOM(self):
-        list_colonne_a_garder_issues_gdf_gros_CUSTOM = ["CODE_CUSTOM","NOM_CUSTOM","echelle",'X_centre_CUSTOM','Y_centre_CUSTOM','orient_CUSTOM','min_x_CUSTOM','min_y_CUSTOM','max_x_CUSTOM','max_y_CUSTOM']
-        gdf_CUSTOM = self.gdf_CUSTOM
-        df_info_CUSTOM_tempo = gdf_CUSTOM.join(gdf_CUSTOM.bounds)
-        df_info_CUSTOM_tempo = df_info_CUSTOM_tempo.rename({"maxx":'max_x_CUSTOM',"maxy":'max_y_CUSTOM',"minx":'min_x_CUSTOM',"miny":'min_y_CUSTOM'},axis=1)
-        df_info_CUSTOM_tempo['taille_GD']=df_info_CUSTOM_tempo['max_y_CUSTOM']-df_info_CUSTOM_tempo['min_y_CUSTOM']
-        df_info_CUSTOM_tempo['taille_BH']=df_info_CUSTOM_tempo['max_x_CUSTOM']-df_info_CUSTOM_tempo['min_x_CUSTOM']
-        #Orientation
-        df_info_CUSTOM_tempo.loc[df_info_CUSTOM_tempo['taille_GD']>df_info_CUSTOM_tempo['taille_BH'],'orient_CUSTOM']='portrait'
-        df_info_CUSTOM_tempo.loc[df_info_CUSTOM_tempo['taille_GD']<df_info_CUSTOM_tempo['taille_BH'],'orient_CUSTOM']='paysage'
+        if self.type_rendu=="carte":
+            list_colonne_a_garder_issues_gdf_gros_CUSTOM = ["CODE_CUSTOM","NOM_CUSTOM","echelle",'X_centre_CUSTOM','Y_centre_CUSTOM','orient_CUSTOM','min_x_CUSTOM','min_y_CUSTOM','max_x_CUSTOM','max_y_CUSTOM']
+            gdf_CUSTOM = self.gdf_CUSTOM
+            df_info_CUSTOM_tempo = gdf_CUSTOM.join(gdf_CUSTOM.bounds)
+            df_info_CUSTOM_tempo = df_info_CUSTOM_tempo.rename({"maxx":'max_x_CUSTOM',"maxy":'max_y_CUSTOM',"minx":'min_x_CUSTOM',"miny":'min_y_CUSTOM'},axis=1)
+            df_info_CUSTOM_tempo['taille_GD']=df_info_CUSTOM_tempo['max_y_CUSTOM']-df_info_CUSTOM_tempo['min_y_CUSTOM']
+            df_info_CUSTOM_tempo['taille_BH']=df_info_CUSTOM_tempo['max_x_CUSTOM']-df_info_CUSTOM_tempo['min_x_CUSTOM']
+            #Orientation
+            df_info_CUSTOM_tempo.loc[df_info_CUSTOM_tempo['taille_GD']>df_info_CUSTOM_tempo['taille_BH'],'orient_CUSTOM']='portrait'
+            df_info_CUSTOM_tempo.loc[df_info_CUSTOM_tempo['taille_GD']<df_info_CUSTOM_tempo['taille_BH'],'orient_CUSTOM']='paysage'
 
-        #Echelle
-        dict_NOM_CUSTOM_echelle = {k:v.echelle_carto_globale for k,v in self.items()}
-        df_info_CUSTOM_tempo['echelle'] = df_info_CUSTOM_tempo['CODE_CUSTOM'].map(dict_NOM_CUSTOM_echelle)
+            #Echelle
+            dict_NOM_CUSTOM_echelle = {k:v.echelle_carto_globale for k,v in self.items()}
+            df_info_CUSTOM_tempo['echelle'] = df_info_CUSTOM_tempo['CODE_CUSTOM'].map(dict_NOM_CUSTOM_echelle)
 
-        #Centre
-        df_info_CUSTOM_tempo['geometry_centre_CUSTOM'] = df_info_CUSTOM_tempo.representative_point()
-        df_info_CUSTOM_tempo['X_centre_CUSTOM']=df_info_CUSTOM_tempo['geometry_centre_CUSTOM'].x
-        df_info_CUSTOM_tempo['Y_centre_CUSTOM']=df_info_CUSTOM_tempo['geometry_centre_CUSTOM'].y
-        df_info_CUSTOM = df_info_CUSTOM_tempo.reset_index()[list_colonne_a_garder_issues_gdf_gros_CUSTOM]
-        df_info_CUSTOM["boite_a_replacer"] = False
-        #ajout de l'ID
-        df_info_CUSTOM['id_atlas'] = df_info_CUSTOM['CODE_CUSTOM'] + '%' + self.type_donnees + '%' + self.thematique + '%' + self.public_cible
-        self.df_info_CUSTOM = df_info_CUSTOM
+            #Centre
+            df_info_CUSTOM_tempo['geometry_centre_CUSTOM'] = df_info_CUSTOM_tempo.representative_point()
+            df_info_CUSTOM_tempo['X_centre_CUSTOM']=df_info_CUSTOM_tempo['geometry_centre_CUSTOM'].x
+            df_info_CUSTOM_tempo['Y_centre_CUSTOM']=df_info_CUSTOM_tempo['geometry_centre_CUSTOM'].y
+            df_info_CUSTOM = df_info_CUSTOM_tempo.reset_index()[list_colonne_a_garder_issues_gdf_gros_CUSTOM]
+            df_info_CUSTOM["boite_a_replacer"] = False
+            #ajout de l'ID
+            df_info_CUSTOM['id_atlas'] = df_info_CUSTOM['CODE_CUSTOM'] + '%' + self.type_donnees + '%' + self.thematique + '%' + self.public_cible
+            self.df_info_CUSTOM = df_info_CUSTOM
         return self
 
     def ajout_attributs_projet(self):
@@ -1256,48 +1257,67 @@ class DictCustomMaitre(dict):
 
     def attributs_df_filtre_dans_dict_CUSTOM_maitre(self,dict_df_donnees):
         for entite_CUSTOM,contenu_CUSTOM in self.items():
-            contenu_CUSTOM.df_filtre_tableau = dict_df_donnees["dict_dict_df_actions_originaux"][entite_CUSTOM].df_filtre_tableau
+            contenu_CUSTOM.df_filtre_tableau = dict_df_donnees["dict_dict_df_actions_originaux"][contenu_CUSTOM.NOM_CUSTOM].df_filtre_tableau
         return self
 
     def attributs_df_log_erreur_dans_dict_CUSTOM_maitre(self,dict_df_donnees):
         for entite_CUSTOM,contenu_CUSTOM in self.items():
-            contenu_CUSTOM.df_log_erreur = dict_df_donnees["dict_dict_df_actions_originaux"][entite_CUSTOM].df_log_erreur
+            contenu_CUSTOM.df_log_erreur = dict_df_donnees["dict_dict_df_actions_originaux"][contenu_CUSTOM.NOM_CUSTOM].df_log_erreur
         return self
 
     def attributs_echelle_REF_dans_dict_CUSTOM_maitre(self,dict_df_donnees):
         for entite_CUSTOM,contenu_CUSTOM in self.items():
-            contenu_CUSTOM.echelle_df = dict_df_donnees["dict_dict_df_actions_originaux"][entite_CUSTOM].echelle_df
+            contenu_CUSTOM.echelle_df = dict_df_donnees["dict_dict_df_actions_originaux"][contenu_CUSTOM.NOM_CUSTOM].echelle_df
         return self
 
     def export_log_df_erreur(self):
         for entite_CUSTOM,contenu_CUSTOM in self.items():
             print("attention, il y a plusieurs logs")
-            if ENVIRONMENT=="developpement":
-                contenu_CUSTOM.df_log_erreur.to_csv("/mnt/g/travail/carto/projets basiques/PAOT global 5.0/Tableau actions/MIA/" + contenu_CUSTOM.echelle_df +  "/log/log "+ entite_CUSTOM + ".csv",index=False)
+            path = os.path.join(self.folder_path,"log_"+contenu_CUSTOM.NOM_CUSTOM)
+            connect_path.upload_file_vers_s3("CUSTOM",contenu_CUSTOM.df_log_erreur,path)
+            
         return contenu_CUSTOM.df_log_erreur
 
-    def export_tableau_excel_complet(self,dict_df_donnees):
-        for entite_CUSTOM,contenu_CUSTOM in self.items():
-            fichier_excel = dict_df_donnees["dict_dict_df_actions_originaux"][entite_CUSTOM].fichier_brut
-            feuille_a_remplir = fichier_excel['tableau a remplir']
+    def export_tableau_excel_complet(self, dict_df_donnees):
+        for entite_CUSTOM, contenu_CUSTOM in self.items():
+            fichier_excel = dict_df_donnees["dict_dict_df_actions_originaux"][contenu_CUSTOM.NOM_CUSTOM].fichier_brut
 
+            # Charger le fichier avec load_workbook (fichier_excel est un BytesIO)
+            wb = load_workbook(fichier_excel)
+
+            # Accéder à la feuille "tableau a remplir"
+            feuille_a_remplir = wb['tableau a remplir']
+
+            # Créer un NamedStyle et copier les propriétés d'une cellule
             format_cellule_rouge = NamedStyle(name="format_cellule_rouge")
             format_cellule_rouge.font = copy(feuille_a_remplir.cell(row=4, column=1).font)
             format_cellule_rouge.alignment = copy(feuille_a_remplir.cell(row=4, column=1).alignment)
             format_cellule_rouge.fill = copy(feuille_a_remplir.cell(row=4, column=1).fill)
             format_cellule_rouge.border = copy(feuille_a_remplir.cell(row=4, column=1).border)
-            fichier_excel.add_named_style(format_cellule_rouge)
 
-            for numero_col,nom_colonne in enumerate(list(contenu_CUSTOM.df_filtre_tableau)):
-                feuille_a_remplir.cell(row=4, column=50+numero_col).value = nom_colonne   
-                feuille_a_remplir.cell(row=4, column=50+numero_col).style = "format_cellule_rouge"
+            # Ajouter le NamedStyle au Workbook
+            wb.add_named_style(format_cellule_rouge)
+
+            # Appliquer ce style à des cellules spécifiques (colonnes d'en-tête)
+            for numero_col, nom_colonne in enumerate(list(contenu_CUSTOM.df_filtre_tableau.columns)):
+                feuille_a_remplir.cell(row=4, column=50 + numero_col).value = nom_colonne
+                feuille_a_remplir.cell(row=4, column=50 + numero_col).style = "format_cellule_rouge"
+
+            # Remplir les cellules avec les données du DataFrame
             for index, row in contenu_CUSTOM.df_filtre_tableau.iterrows():
-                for numero_ligne,contenu_ligne in enumerate(row):
-                    feuille_a_remplir.cell(row=6+index, column=50+numero_ligne).value = contenu_ligne
-            feuille_a_remplir.cell(row=1,column=1).value = "Tableau DORA actions MIA " + contenu_CUSTOM.echelle_df + " final " + contenu_CUSTOM.NOM_CUSTOM
-            if ENVIRONMENT=="developpement":
-                fichier_excel.save("/mnt/g/travail/carto/projets basiques/PAOT global 5.0/Tableau actions/MIA/" + contenu_CUSTOM.echelle_REF + "/Tableaux_final/Tableau_final_" + contenu_CUSTOM.NOM_CUSTOM + ".xlsx")
-        return tableau_excel
+                for numero_col, contenu_ligne in enumerate(row):
+                    feuille_a_remplir.cell(row=6 + index, column=50 + numero_col).value = contenu_ligne
+
+            # Ajout d'une valeur à la cellule A1
+            feuille_a_remplir.cell(row=1, column=1).value = (
+                "Tableau DORA actions MIA " + contenu_CUSTOM.echelle_df + " final " + contenu_CUSTOM.NOM_CUSTOM
+            )
+
+            # Sauvegarder le fichier Excel modifié
+            #chemin_sauvegarde = f"/mnt/h/Tableau_final_{contenu_CUSTOM.NOM_CUSTOM}.xlsx"
+            #wb.save(chemin_sauvegarde)
+
+        return "Exportation terminée"
 
 class NomCUSTOMMaitre(dict):
     def __init__(self,TYPE_REF=None):

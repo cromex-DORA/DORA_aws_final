@@ -1,15 +1,19 @@
 import React, { useState, useRef } from 'react';
+import { Button } from 'react-bootstrap';
+import LoadingModal from './LoadingModal';
 
 const ContenuMO = ({
-    folders, 
-    files, 
-    currentPath, 
-    folderName, 
-    highlightedFolderId, 
-    setHighlightedFolderId, 
+    folders,
+    files,
+    currentPath,
+    folderName,
+    highlightedFolderId,
+    setHighlightedFolderId,
     handleFolderClick,
     selectedFolderId
 }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [fileToUpload, setFileToUpload] = useState(null);
     const fileInputRef = useRef(null); // Référence pour l'input de fichier
@@ -53,6 +57,8 @@ const ContenuMO = ({
     };
 
     const createtableauviergeMO = async () => {
+        setIsLoading(true);
+        setMessage('');
         const formData = new FormData();
         formData.append('id', selectedFolderId);
         formData.append('name', folderName);
@@ -69,9 +75,12 @@ const ContenuMO = ({
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
             console.log('Tableau vierge DORA créé !');
-            // Actualiser la liste après la création
+            setMessage('Le fichier a été créé avec succès !');
         } catch (error) {
             console.error('Échec de la création du fichier:', error);
+            setMessage('Erreur lors de la création du fichier.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -89,6 +98,7 @@ const ContenuMO = ({
         const formData = new FormData();
         formData.append('file', file);
         formData.append('NOM_MO', folderName);
+        formData.append('CODE_MO', selectedFolderId);
         // Ajoutez d'autres informations nécessaires ici
 
         const token = localStorage.getItem('token');
@@ -146,8 +156,8 @@ const ContenuMO = ({
                 ))}
                 {files.map((file, index) => (
                     <li key={index}>
-                        <span 
-                            onClick={() => downloadFile(selectedFolderId ? `${selectedFolderId}/${file}` : file)} 
+                        <span
+                            onClick={() => downloadFile(selectedFolderId ? `${selectedFolderId}/${file}` : file)}
                             style={{ cursor: 'pointer', color: 'blue' }}
                         >
                             {file}
@@ -167,14 +177,23 @@ const ContenuMO = ({
                         <button onClick={openFileExplorer} style={{ marginLeft: '10px' }}>
                             Vérifier un tableau
                         </button>
+                        {/* Modal de chargement réutilisable */}
+                        <LoadingModal
+                            isOpen={isLoading}
+                            onRequestClose={() => setIsLoading(false)}
+                            message="Création du fichier en cours..."
+                        />
+
+                        {/* Message de succès ou d'erreur */}
+                        {message && <p>{message}</p>}
                     </div>
-                    
+
                     {/* Champ d'importation de fichier invisible */}
-                    <input 
-                        type="file" 
-                        ref={fileInputRef} 
+                    <input
+                        type="file"
+                        ref={fileInputRef}
                         style={{ display: 'none' }} // Cache l'input
-                        onChange={handleFileChange} 
+                        onChange={handleFileChange}
                     />
                 </div>
             )}

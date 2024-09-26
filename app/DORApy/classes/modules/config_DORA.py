@@ -142,13 +142,16 @@ def import_dict_config_actions_MIA_DORA():
 
     #Elu
     df_DORA_actions_MIA_elu = df_config_DORA[liste_col_commune_a_garder + list_col_ELU]
+    df_DORA_actions_MIA_elu.columns = [colonne.replace("ELU-", '') for colonne in list(df_DORA_actions_MIA_elu)]
 
     #Tech
     df_DORA_actions_MIA_tech = df_config_DORA[liste_col_commune_a_garder + list_col_TECH]
-
+    df_DORA_actions_MIA_elu.columns = [colonne.replace("TECH-", '') for colonne in list(df_DORA_actions_MIA_elu)]
+    
     #Convertisseur Osmose
     df_DORA_actions_MIA_conv_Osmose = df_config_DORA[liste_col_commune_a_garder]
     df_DORA_actions_MIA_conv_Osmose.loc[~df_DORA_actions_MIA_conv_Osmose["NOM_TYPE_ACTION_DORA"].isnull()]
+
 
     dict_config_DORA_actions_MIA["df_actions_MIA_elu"] = df_DORA_actions_MIA_elu
     dict_config_DORA_actions_MIA["df_actions_MIA_tech"] = df_DORA_actions_MIA_tech
@@ -159,7 +162,7 @@ def import_dict_config_actions_MIA_DORA():
 
 def import_df_BDD_DORA_vierge():
     filename = ("config\\DORA\\dict_type_col_BDD_DORA.csv")
-    df_config = connect_path.conv_s3_obj_vers_python_obj("config",filename)       
+    filename = connect_path.conv_s3_obj_vers_python_obj("config",filename)       
     df_BDD_DORA_vierge = pd.read_csv(filename)
     return df_BDD_DORA_vierge
 

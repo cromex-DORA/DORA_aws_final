@@ -165,7 +165,7 @@ class DictDonnees(dict):
                     dict_filtre_tableau_DORA = {k:pd.DataFrame(data={"ID_DORA":x.df['ID_DORA'].to_list()}) for k,x in contenu_donnees.items()}
                     #contenu_donnees = DictDFTableauxActionsMIA.actualisation_CODE_ME(contenu_donnees,dict_relation_shp_liste)
                     dict_filtre_tableau_DORA = DictDFTableauxActionsMIA.filtre_pression_tableau_DORA(dict_filtre_tableau_DORA,contenu_donnees)
-                    dict_filtre_tableau_DORA = DictDFTableauxActionsMIA.filtre_PDM(dict_filtre_tableau_DORA,contenu_donnees,dict_relation_shp_liste)
+                    #dict_filtre_tableau_DORA = DictDFTableauxActionsMIA.filtre_PDM(dict_filtre_tableau_DORA,contenu_donnees,dict_relation_shp_liste)
                     dict_filtre_tableau_DORA = DictDFTableauxActionsMIA.filtre_bon_etat(dict_filtre_tableau_DORA,contenu_donnees)
                     dict_filtre_tableau_DORA = DictDFTableauxActionsMIA.filtre_finale(dict_filtre_tableau_DORA)
                     for entite_CUSTOM,contenu_CUSTOM in contenu_donnees.items():

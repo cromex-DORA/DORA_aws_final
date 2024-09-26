@@ -1,8 +1,8 @@
-from app.DORApy import creation_carte
+from app.DORApy import check_tableau_DORA
 
-LISTE_CODE_CUSTOM = ["MO_gemapi_10041","MO_gemapi_10032"]
+LISTE_CODE_CUSTOM = ["MO_gemapi_10041"]
 
-creation_carte.creation_couches_carto(LISTE_CODE_CUSTOM)
+check_tableau_DORA.verification_tableau_vierge_DORA(LISTE_CODE_CUSTOM,"MO")
 print("coucou")
 '''bucket_files_common = os.getenv('S3_BUCKET_COMMON_FILES')
 bucket_files_CUSTOM = os.getenv('S3_BUCKET_USERS_FILES')

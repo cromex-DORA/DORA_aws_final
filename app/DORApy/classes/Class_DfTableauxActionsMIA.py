@@ -1,8 +1,9 @@
 import pandas as pd
 import geopandas as gpd
-from app.DORApy.classes.modules import dataframe
+from app.DORApy.classes.modules import dataframe,connect_path
 import os.path
 from os import path
+import io
 import sys
 import re
 import numpy as np
@@ -63,9 +64,12 @@ class DfTableauxActionsMIA:
         return f"tableau action : {self.CODE_CUSTOM},{self.NOM_MO}"
 
     def recuperation_xlsx_brut(self):
-        self.fichier_brut=load_workbook(filename=self.path)
+        path = self.path
+        filename = connect_path.conv_s3_obj_vers_python_obj("CUSTOM",path)
+        data = io.BytesIO(filename)
+        self.fichier_brut = data
     def recuperation_xlsx_en_df(self):
-        self.df=pd.read_excel(self.path,sheet_name="tableau a remplir")
+        self.df=pd.read_excel(self.fichier_brut,sheet_name="tableau a remplir")
     def stockage_df_brut(self):
         self.df_brut=copy.deepcopy(self.df)
     def get_echelle_df(self):
@@ -84,11 +88,11 @@ class DfTableauxActionsMIA:
         self.dict_nb_chiffres = config_DORA.creation_dict_dict_config_df_actions_MIA()['dict_nb_chiffres_col_DORA_'+self.echelle_df]
     def get_name(self):
         if self.echelle_df == "MO":
-            dict_MO_liste_NOM_MO = {folder.name:folder.NOM_MO for folder in list_rep_MO_gemapi}
+            dict_MO_liste_NOM_MO = {folder['id']:folder['name'] for folder in list_rep_MO_gemapi}
             self.name = dict_MO_liste_NOM_MO[self.CODE_CUSTOM]
     def get_numero_dep(self):
         if self.echelle_df == "MO":
-            dict_MO_liste_CODE_DEP = {folder.name:folder.list_CODE_DEP for folder in list_rep_MO_gemapi}
+            dict_MO_liste_CODE_DEP = {folder['id']:folder['list_CODE_DEP'] for folder in list_rep_MO_gemapi}
             self.numero_dep = dict_MO_liste_CODE_DEP[self.CODE_CUSTOM]
     def get_annee_remplissage(self):
         try:
@@ -97,7 +101,7 @@ class DfTableauxActionsMIA:
             self.annee_remplissage = 2024
 
     def get_echelle_REF_base(self):
-        df_SME=pd.read_excel(self.path,sheet_name="Pour lien ME SME")
+        df_SME=pd.read_excel(self.fichier_brut,sheet_name="Pour lien ME SME")
         if len(df_SME)>1:
             self.echelle_base_REF = "SME"
         else:
@@ -301,7 +305,7 @@ class DfTableauxActionsMIA:
 
         if "CODE_SME" in list(df):
             df = df.explode('CODE_SME')
-            df['CODE_SME'] = df['CODE_SME'].fillna('nan')   
+            df['CODE_SME'] = df['CODE_SME'].fillna('nan')
             df = df.reset_index(drop=True)
             dict_type_col['CODE_SME'] = 'str'
         return df

@@ -16,8 +16,8 @@ environment = os.getenv('ENVIRONMENT')
 #PDM
 #####################################################################################################
 def import_df_PDM_AG():
-    filename = ("BDD_Osmose\\export PDM AG 2024.csv")
-    filename = connect_path.get_file_path_racine(filename)
+    filename = ("config\\Osmose\\PDM_2024_AG.csv")
+    filename = connect_path.conv_s3_obj_vers_python_obj("config",filename)
     df_PDM_AG= pd.read_csv(filename, index_col=0)
     dict_renom = {"Code Osmose de l'action/mesure":"CODE_PDM","Code du type d'action":"CODE_TYPE_ACTION_OSMOSE","Code(s) us-pdm":"CODE_BVG","Code du sous-domaine":"SOUS_DOMAINE_OSMOSE"}
     df_PDM_AG = df_PDM_AG.rename(dict_renom,axis=1)
