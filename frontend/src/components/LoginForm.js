@@ -7,9 +7,13 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
+  console.log("Environment Variables:", process.env);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    console.log(process.env.REACT_APP_IP_SERV);  // Devrait afficher l'URL
+  
     try {
       const response = await fetch(`${process.env.REACT_APP_IP_SERV}/login`, {
         method: 'POST',
@@ -18,27 +22,27 @@ const Login = () => {
         },
         body: JSON.stringify({ email, password }),
       });
-
+      
       if (!response.ok) {
         throw new Error('Login failed');
       }
-
+  
       const data = await response.json();
       localStorage.setItem('token', data.token);
       setMessage('Login successful');
-
+  
       if (data.role === 'test') {
         navigate('/test');
-      } else if (data.role === 'user') {  // Remplace le else par un autre if pour une vérification explicite
-        navigate('/folder');
+      } else if (data.role === 'user') {
+        navigate('/menuprincipal');
       } else {
-        // Optionnel: gérer le cas où le rôle n'est pas reconnu
         setMessage('Role not recognized');
       }
     } catch (error) {
       setMessage(error.message);
     }
   };
+  
 
   return (
     <div>

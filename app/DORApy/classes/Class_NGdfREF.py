@@ -1,11 +1,12 @@
 import os
 import geopandas as gpd
 from app.DORApy.classes.modules.connect_path import s3
+from app.DORApy.classes.modules import connect_path
 from shapely import Polygon,MultiPolygon
 import json
 import pandas as pd
 import os
-import sys
+import fsspec
 
 environment = os.getenv('ENVIRONMENT')
 chemin_fichiers_shp = os.getenv('chemin_fichiers_shp')
@@ -28,7 +29,7 @@ class NGdfREF:
             self._scan_file(path)
 
     def _ajout_gdf(self,path,REF):
-        gdf = gpd.read_file(path)
+        gdf = connect_path.lire_gpkg_sur_s3_avec_gpd("CUSTOM",path)
         gdf = gdf.to_crs(2154)
         if self.type_de_geom == "polygon":
             gdf['surface_'+REF] = gdf.area

@@ -4,6 +4,11 @@ import os
 import io
 from tempfile import NamedTemporaryFile
 import pandas as pd
+import geopandas as gpd
+import fsspec
+import tempfile
+import shutil
+
 load_dotenv()
 
 environment = os.getenv('ENVIRONMENT')
@@ -111,3 +116,43 @@ def lister_exclu_fichiers_folder_s3(bucket,path):
     list_fichiers_sans_folder = [key for key in list_key if not key.endswith("/")]
     list_noms_fichiers = [key.split("/")[-1] for key in list_fichiers_sans_folder]
     return list_noms_fichiers
+
+def lire_gpkg_sur_s3_avec_gpd(type_bucket,path):
+    if type_bucket == "config":
+        nom_bucket = bucket_files_common
+    if type_bucket == "CUSTOM":
+        nom_bucket = bucket_files_CUSTOM
+
+    extension = path.split(".")[-1]
+    base_path = path.split(".")[0]
+    fs = fsspec.filesystem('s3', key=s3_access_key, secret=s3_secret_key)
+    if extension=="gpkg":
+        with tempfile.NamedTemporaryFile(suffix=".gpkg") as tmpfile:
+            # Télécharger et sauvegarder localement
+            with fs.open(path, 'rb') as s3file:
+                shutil.copyfileobj(s3file, tmpfile)
+            
+            # Assurez-vous que le fichier est sauvegardé
+            tmpfile.flush()
+
+            # Lire avec geopandas
+            gdf = gpd.read_file(tmpfile.name)
+
+    if extension=="shp":
+        shp_extensions = ['.shp', '.shx', '.dbf', '.prj']  # Ajouter d'autres extensions si nécessaire
+
+        # Créer un répertoire temporaire local
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Télécharger tous les fichiers associés du Shapefile
+            for ext in shp_extensions:
+                s3_file = f"{base_path}{ext}"
+                local_file = os.path.join(tmpdir, os.path.basename(s3_file))
+                fs.get(s3_file, local_file)
+
+            # Construire le chemin du fichier .shp local téléchargé
+            local_shp_path = os.path.join(tmpdir, os.path.basename(f"{base_path}.shp"))
+
+            # Lire le fichier Shapefile localement avec geopandas
+            gdf = gpd.read_file(local_shp_path)
+    return gdf  
+        
