@@ -73,8 +73,9 @@ const Milieuxaquatiques = () => {
 
     
     const handleFolderClick = (folder) => {
-        console.log("id",folder.id)
+        console.log("Before update, selectedFolderId:", selectedFolderId);
         setSelectedFolderId(folder.id);
+        console.log("After update, selectedFolderId:", folder.id);
         setFiles(folder.files || []);
         setCurrentPath(folder.path || '');
         setFolderName(folder.name || '');

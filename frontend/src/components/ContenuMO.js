@@ -143,8 +143,8 @@ const ContenuMO = ({
                     <li
                         key={folder.id}
                         onClick={() => handleFolderClick(folder)}
-                        onMouseOver={() => setHighlightedFolderId(folder.id)}
-                        onMouseOut={() => setHighlightedFolderId(null)}
+                        //onMouseOver={() => setHighlightedFolderId(folder.id)}
+                        //onMouseOut={() => setHighlightedFolderId(null)}
                         style={{
                             cursor: 'pointer',
                             color: highlightedFolderId === folder.id ? 'red' : 'blue',

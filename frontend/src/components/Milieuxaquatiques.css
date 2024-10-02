@@ -28,6 +28,14 @@
     grid-row: 1 / 2;    /* First row */
 }
 
+.map-container .leaflet-interactive {
+    pointer-events: auto; /* Ensure that mouse events are captured */
+}
+
+.map-container .mo-layer {
+    pointer-events: none; /* Disable mouse events on MO layer when appropriate */
+}
+
 /* Style pour la carte elle-même */
 .map {
     width: 90%; /* Take 100% width minus a 10px margin to prevent overlap with the scrollbar */
