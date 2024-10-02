@@ -70,7 +70,10 @@ const Milieuxaquatiques = () => {
         }
     }, [selectedFolderId, folders]);
 
+
+    
     const handleFolderClick = (folder) => {
+        console.log("id",folder.id)
         setSelectedFolderId(folder.id);
         setFiles(folder.files || []);
         setCurrentPath(folder.path || '');
@@ -109,10 +112,10 @@ const Milieuxaquatiques = () => {
             <div className="map-container">
                 <MapDEPMOgemapi
                     geoJsonData={geoJsonData}
+                    selectedFolderId={selectedFolderId}
                     setSelectedFolderId={setSelectedFolderId}
                     highlightedFolderId={highlightedFolderId}
                     setHighlightedFolderId={setHighlightedFolderId}
-                    selectedFolderId={selectedFolderId}
                     handleFolderClick={handleFolderClick}
                 />
             </div>

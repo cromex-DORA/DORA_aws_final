@@ -89,7 +89,6 @@ def upload_file_vers_s3(type_bucket,file,path):
         csv_buffer = io.StringIO()
         file.to_csv(csv_buffer, index=False)
         # Uploader sur S3
-
         s3.put_object(Bucket=nom_bucket, Key=path, Body=csv_buffer.getvalue())   
     if extension == "xlsx":
         upload_workbook(file, nom_bucket, path)

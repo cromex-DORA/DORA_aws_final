@@ -8,24 +8,26 @@ import './MapDEPMOgemapi.css';
 import { Button } from 'react-bootstrap';
 import { useMapEvents } from 'react-leaflet';
 
+// Composant pour ajuster la vue de la carte en fonction des limites
 const ZoomToBounds = ({ bounds }) => {
     const map = useMap();
 
     useEffect(() => {
         if (bounds) {
-            map.fitBounds(bounds); // Ajuste la vue de la carte pour cadrer les limites
+            map.fitBounds(bounds);
         }
     }, [bounds, map]);
 
     return null;
 };
 
+// Composant pour gérer les événements de la carte
 const MapEvents = ({ setZoomLevel }) => {
     useMapEvents({
         zoomend: (e) => {
             const zoom = e.target.getZoom();
             setZoomLevel(zoom);
-            console.log("niveau zoom:", zoom); // Affiche le niveau de zoom dans la console
+            console.log("niveau zoom:", zoom);
         }
     });
 
@@ -33,7 +35,7 @@ const MapEvents = ({ setZoomLevel }) => {
 };
 
 const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, setHighlightedFolderId, handleFolderClick }) => {
-
+    console.log("Highlighted Folder ID in Map:", highlightedFolderId);
     const [filter, setFilter] = useState('Syndicat');
     const [selectedType, setSelectedType] = useState('ME');
     const [filteredGeoJsonData, setFilteredGeoJsonData] = useState(null);
@@ -42,16 +44,13 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     const [zoomLevel, setZoomLevel] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const mapRef = useRef();
-    const geoJsonLayerRef = useRef();
+    const geoJsonLayerRefME = useRef();  // Référence pour ME
+    const geoJsonLayerRefMO = useRef();  // Référence pour MO
+    const geoJsonLayerRefPPG = useRef(); // Référence pour PPG
+    const geoJsonLayerRefCEME = useRef(); // Référence pour CE_ME
 
-
-    const openModal = () => {
-        setIsModalOpen(true);
-    };
-
-    const closeModal = () => {
-        setIsModalOpen(false);
-    };
+    const openModal = () => setIsModalOpen(true);
+    const closeModal = () => setIsModalOpen(false);
 
     // Fetch initial bounds on mount
     useEffect(() => {
@@ -72,10 +71,10 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
                 }
                 const bboxData = await bboxResponse.json();
                 const bounds = [
-                    [bboxData.miny, bboxData.minx], // [latitude minimale, longitude minimale]
-                    [bboxData.maxy, bboxData.maxx]  // [latitude maximale, longitude maximale]
+                    [bboxData.miny, bboxData.minx],
+                    [bboxData.maxy, bboxData.maxx]
                 ];
-                setInitialBounds(bounds); // Mettre à jour initialBounds
+                setInitialBounds(bounds);
             } catch (error) {
                 console.error('Error fetching bounding box:', error);
             }
@@ -84,173 +83,192 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
         fetchInitialBounds();
     }, []);
 
+    // Séparer les données GeoJSON par type_REF
     useEffect(() => {
-        console.log('Initial bounds:', initialBounds); // Vérifiez que les initialBounds sont définis
-    }, [initialBounds]);
+        if (geoJsonData) {
+            const separatedData = {
+                MO: geoJsonData.features.filter(feature => feature.properties['type_REF'] === 'MO'),
+                PPG: geoJsonData.features.filter(feature => feature.properties['type_REF'] === 'PPG'),
+                ME: geoJsonData.features.filter(feature => feature.properties['type_REF'] === 'ME'),
+                CE_ME: geoJsonData.features.filter(feature => feature.properties['type_REF'] === 'CE_ME')
+            };
 
-    // Effect to filter GeoJSON data when geoJsonData or filter changes
-useEffect(() => {
-    if (geoJsonData) {
-        const updatedFilteredData = {
-            ...geoJsonData,
-            features: geoJsonData.features.filter(feature => {
-                const typeMO = feature.properties['TYPE_MO'];
-                const typeREF = feature.properties['type_REF'];
+            setFilteredGeoJsonData(separatedData);
+        }
+    }, [geoJsonData]);
 
-                // Filtrer par TYPE_MO (filtre actuel)
-                const passesFilter = filter ? typeMO === filter : true;
-
-                // On s'assure que les MO du type sélectionné sont affichés
-                const isMatchingTypeRef = selectedType ? typeREF === selectedType : true;
-
-                // Affiche les polygones qui correspondent au filtre de TYPE_MO,
-                // inclut les PPG/ME si sélectionnés et toujours affiche CE_ME
-                return passesFilter || isMatchingTypeRef || typeREF === 'CE_ME';
-            })
-        };
-
-        setFilteredGeoJsonData(updatedFilteredData);
-    }
-}, [filter, selectedType, geoJsonData]);
-
-
-    // Update GeoJSON layer style when highlightedFolderId changes
+    // Effect to update ME tooltips when selectedFolderId changes
+    // Effect to update MO tooltips when selectedFolderId changes
     useEffect(() => {
-        if (geoJsonLayerRef.current && filteredGeoJsonData) {
-            geoJsonLayerRef.current.eachLayer(layer => {
-                const featureId = layer.feature.id;
-                const isHighlighted = highlightedFolderId === featureId;
+        if (geoJsonLayerRefMO.current && filteredGeoJsonData?.MO.length > 0) {
+            geoJsonLayerRefMO.current.eachLayer(layer => {
+                const feature = layer.feature;
 
-                layer.setStyle(style(layer.feature, isHighlighted)); // Utilisation de la fonction style
+                // Supprimer les tooltips existants
+                layer.unbindTooltip();
+
+                // Si selectedFolderId est null, afficher ALIAS
+                if (!selectedFolderId) {
+                    layer.bindTooltip(labelMO(feature), {
+                        permanent: true,
+                        direction: "auto",
+                        className: "mo-label"
+                    });
+                }
+
+
             });
         }
-    }, [highlightedFolderId, filteredGeoJsonData]);
+    }, [selectedFolderId, filteredGeoJsonData]);
 
-    // Effect to update bounds when selectedFolderId changes
+    // Effect to update ME tooltips when selectedFolderId changes
     useEffect(() => {
-        if (geoJsonLayerRef.current && filteredGeoJsonData && selectedFolderId) {
-            geoJsonLayerRef.current.eachLayer(layer => {
-                const featureId = layer.feature.id;
-                if (featureId === selectedFolderId) {
-                    const bounds = layer.getBounds(); // Get the bounds of the selected feature
-                    setSelectedBounds(bounds); // Set the bounds to zoom to
+        if (geoJsonLayerRefME.current && filteredGeoJsonData?.ME.length > 0) {
+            geoJsonLayerRefME.current.eachLayer(layer => {
+                const feature = layer.feature;
+
+                // Supprimer les tooltips existants
+                layer.unbindTooltip();
+
+
+                // Si selectedFolderId est non null, afficher "bonjour" pour les ME
+                if (selectedFolderId && feature.properties['type_REF'] === 'ME') {
+                    layer.bindTooltip(labelME(feature), {
+                        permanent: true,
+                        direction: "auto",
+                        className: "me-label"
+                    });
                 }
             });
         }
     }, [selectedFolderId, filteredGeoJsonData]);
 
 
-useEffect(() => {
-    if (geoJsonLayerRef.current && filteredGeoJsonData) {
-        geoJsonLayerRef.current.eachLayer(layer => {
-            const feature = layer.feature;
+    // labelMO and labelME functions
+    const labelMO = (feature) => {
+        return feature.properties.ALIAS || 'Pas d\'alias'; // Renvoie l'ALIAS ou un message par défaut
+    };
 
-            // Supprimez les tooltips existants
-            layer.unbindTooltip();
+    const labelME = (feature) => {
+        return 'Bonjour'; // Retourne le texte de l'étiquette pour ME
+    };
 
-            // Ajoutez les tooltips uniquement si le zoom est supérieur à 8 
-            // et si selectedFolderId est null
-            if (zoomLevel > 8 && feature.properties.ALIAS && selectedFolderId === null) {
-                layer.bindTooltip(feature.properties.ALIAS, {
-                    permanent: true,
-                    direction: "center",
-                    className: "polygon-label",
-                    interactive: false   // Style des étiquettes
-                });
-            }
-        });
-    }
-}, [zoomLevel, filteredGeoJsonData, selectedFolderId]);
+    useEffect(() => {
+        if (highlightedFolderId && geoJsonLayerRefMO.current) {
+            let entityExists = false; // Flag to check if the entity exists
+    
+            geoJsonLayerRefMO.current.eachLayer((layer) => {
+                const featureId = layer.feature.properties.id; // Assuming 'id' is the common identifier
+                
+                if (featureId === highlightedFolderId) {
+                    entityExists = true; // Entity found
+                    layer.setStyle({ color: 'yellow', weight: 5 }); // Highlight style
+                } else {
+                    layer.setStyle({ color: 'green', weight: 1 }); // Default style
+                }
+            });
+    
+            // Log whether the entity was found or not
+            console.log(`Entity with ID ${highlightedFolderId} exists: ${entityExists}`);
+        }
+    }, [highlightedFolderId]); // Re-run when highlightedFolderId changes
+    
 
     const onEachFeature = (feature, layer) => {
+        const isMO = feature.properties['type_REF'] === 'MO';
+        const isME = feature.properties['type_REF'] === 'ME';
+    
         layer.on({
             click: () => {
-                const bounds = layer.getBounds();
-                console.log("bounds", bounds);
-                setSelectedBounds(bounds);
-
-                // Appeler handleFolderClick avec l'ID du dossier correspondant
-                if (handleFolderClick) {
-                    handleFolderClick({
-                        id: feature.id,
-                        name: feature.properties.NOM_MO,  // Assurez-vous que le nom du dossier est dans properties
-                        path: feature.properties.path || '', // Assurez-vous que le chemin est aussi dans properties
-                        files: feature.properties.files || [] // Assurez-vous que les fichiers sont dans properties
-                    });
+                // Si selectedFolderId est null, gère les clics sur les MO
+                if (isMO && !selectedFolderId) {
+                    const bounds = layer.getBounds();
+                    console.log("bounds", bounds);
+                    setSelectedBounds(bounds);
+    
+                    // Appeler handleFolderClick avec l'ID du dossier correspondant
+                    if (handleFolderClick) {
+                        handleFolderClick({
+                            id: feature.id,
+                            name: feature.properties.NOM_MO,
+                            path: feature.properties.path || '',
+                            files: feature.properties.files || []
+                        });
+                    }
+                }
+                // Si selectedFolderId n'est pas null, gère les clics sur les ME
+                else if (isME && selectedFolderId) {
+                    console.log(`ME clicked with selectedFolderId: ${selectedFolderId}`);
+                    // Ajoute ici le code pour gérer le clic sur ME
                 }
             },
             mouseover: () => {
-                setHighlightedFolderId(feature.id);
-                layer.setStyle(style(feature, true)); // Applique le style de surlignage
+                // Appliquer la surbrillance seulement pour MO
+                if (isMO) {
+                    setHighlightedFolderId(feature.id);
+                    layer.setStyle(style(feature, true)); // Applique le style de surbrillance
+                }
             },
             mouseout: () => {
-                if (feature.id !== highlightedFolderId) {
-                    layer.setStyle(style(feature, false)); // Réapplique le style normal
+                // Garde le surlignage jusqu'à ce que la souris soit complètement sortie de la zone du feature
+                if (highlightedFolderId === feature.id) {
+                    layer.setStyle(style(feature, false)); // Réapplique le style normal seulement si l'ID correspond
                 }
                 setHighlightedFolderId(null);
             }
         });
     };
+    
+    
 
-    // Wait for initialBounds to be set before rendering the map
+    const style = (feature, highlightedFolderId) => {
+        const category = feature.properties['type_REF'];
+        const featureId = feature.properties.id; // Assuming 'id' is the common identifier
+    
+        // Check if the current feature should be highlighted
+        const isHighlighted = highlightedFolderId === featureId;
+    
+        if (isHighlighted) {
+            return {
+                color: 'yellow',
+                weight: 5,
+                fillOpacity: 0.6
+            };
+        }
+    
+        if (category === 'MO') {
+            return {
+                color: 'green',
+                weight: 5,
+                fillColor: 'rgba(0, 255, 0, 0.1)',
+                fillOpacity: 0.1,
+                opacity: 1,
+            };
+        }
+        if (category === 'PPG' || category === 'ME') {
+            return {
+                color: 'gray',
+                weight: 2,
+                fillOpacity: 0.3
+            };
+        }
+        if (category === 'CE_ME') {
+            return {
+                color: 'blue',
+                weight: 1,
+                fillColor: 'rgba(0, 0, 255, 0.2)',
+                fillOpacity: 0.4,
+                opacity: 1,
+            };
+        }
+    
+        return {};
+    };
+
+    // Attendre que les initialBounds soient définis avant de rendre la carte
     if (!initialBounds) {
         return <div>Loading map...</div>;
     }
-
-const style = (feature, isHighlighted) => {
-    const category = feature.properties['type_REF'];
-
-    if (isHighlighted) {
-        return {
-            color: 'yellow', // Couleur pour le surlignage
-            weight: 5,
-            fillOpacity: 0.6
-        };
-    }
-
-    // Style pour les MO (vert)
-    if (feature.properties['type_REF'] === 'MO') {
-        return {
-            color: 'green', // Couleur des contours en vert
-            weight: 5, // Épaisseur des contours
-            fillColor: 'rgba(0, 255, 0, 0.1)', // Vert très transparent pour le remplissage
-            fillOpacity: 0.1, // Transparence du remplissage
-            opacity: 1, // Opacité du contour
-        };
-    }
-
-    // Style pour les PPG
-    if (feature.properties['type_REF'] === 'PPG') {
-        return {
-            color: 'gray', // Couleur pour PPG
-            weight: 2,
-            fillOpacity: 0.3
-        };
-    }
-
-    // Style pour les ME
-    if (feature.properties['type_REF'] === 'ME') {
-        return {
-            color: 'gray', // Couleur pour ME
-            weight: 2,
-            fillOpacity: 0.3
-        };
-    }
-
-    // Style pour CE_ME (bleu)
-    if (feature.properties['type_REF'] === 'CE_ME') {
-        return {
-            color: 'blue', // Couleur des contours en bleu
-            weight: 1, // Épaisseur des contours
-            fillColor: 'rgba(0, 0, 255, 0.2)', // Bleu plus transparent pour le remplissage
-            fillOpacity: 0.4, // Transparence du remplissage
-            opacity: 1, // Opacité du contour
-        };
-    }
-
-    return {};
-};
-
 
     return (
         <div className="map-container">
@@ -268,7 +286,7 @@ const style = (feature, isHighlighted) => {
                 />
             </div>
             <MapContainer
-                bounds={initialBounds} // Set the initial bounds here
+                bounds={initialBounds}
                 className="map"
                 whenCreated={map => { mapRef.current = map; }}
             >
@@ -277,56 +295,55 @@ const style = (feature, isHighlighted) => {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
 
-                {/* Rendu des polygones CE_ME (doit être en dernier pour être au-dessus) */}
-                {filteredGeoJsonData && (
-                    <GeoJSON
-                        key={`ceme-${filteredGeoJsonData.features.length}`} // Utilisation d'une clé unique pour MO
-                        data={filteredGeoJsonData.features.filter(feature => feature.properties['type_REF'] === 'CE_ME')}
-                        style={style}
-                        onEachFeature={onEachFeature}
-                        ref={geoJsonLayerRef}
-                    />
-                )}        
+                {/* Rendu des polygones par type */}
 
-                {/* Rendu des polygones PPG */}
-                {filteredGeoJsonData && (
+                {/* Render ME GeoJSON */}
+                {filteredGeoJsonData?.ME.length > 0 && (
                     <GeoJSON
-                        key={`ppg-${filteredGeoJsonData.features.length}`} // Utilisation d'une clé unique pour PPG
-                        data={filteredGeoJsonData.features.filter(feature => feature.properties['type_REF'] === 'PPG')}
-                        style={style}
+                        key={`me-${filteredGeoJsonData.ME.length}`}
+                        data={filteredGeoJsonData.ME}
+                        ref={geoJsonLayerRefME}
                         onEachFeature={onEachFeature}
-                        ref={geoJsonLayerRef}
+                        style={(feature) => style(feature, false)}
                     />
                 )}
 
-                {/* Rendu des polygones ME */}
-                {filteredGeoJsonData && (
+                {/* Render PPG GeoJSON */}
+                {filteredGeoJsonData?.PPG.length > 0 && (
                     <GeoJSON
-                        key={`me-${filteredGeoJsonData.features.length}`} // Utilisation d'une clé unique pour ME
-                        data={filteredGeoJsonData.features.filter(feature => feature.properties['type_REF'] === 'ME')}
-                        style={style}
-                        onEachFeature={onEachFeature}
-                        ref={geoJsonLayerRef}
+                        key={`ppg-${filteredGeoJsonData.PPG.length}`}
+                        data={filteredGeoJsonData.PPG}
+                        ref={geoJsonLayerRefPPG}
+                        style={(feature) => style(feature, false)}
                     />
                 )}
 
-                {/* Rendu des polygones MO (doit être en dernier pour être au-dessus) */}
-                {filteredGeoJsonData && (
+                {/* Render CE_ME GeoJSON */}
+                {filteredGeoJsonData?.CE_ME.length > 0 && (
                     <GeoJSON
-                        key={`mo-${filteredGeoJsonData.features.length}`} // Utilisation d'une clé unique pour MO
-                        data={filteredGeoJsonData.features.filter(feature => feature.properties['type_REF'] === 'MO')}
-                        style={style}
-                        onEachFeature={onEachFeature}
-                        ref={geoJsonLayerRef}
+                        key={`ceme-${filteredGeoJsonData.CE_ME.length}`}
+                        data={filteredGeoJsonData.CE_ME}
+                        ref={geoJsonLayerRefCEME}
+
+                        style={(feature) => style(feature, false)}
                     />
                 )}
 
-        
+                {/* Render MO GeoJSON */}
+                {filteredGeoJsonData?.MO.length > 0 && (
+                    <GeoJSON
+                        key={`mo-${filteredGeoJsonData.MO.length}`}
+                        data={filteredGeoJsonData.MO}
+                        ref={geoJsonLayerRefMO}
+                        onEachFeature={onEachFeature}
+                        style={(feature) => style(feature, highlightedFolderId)}
+                    />
+                )}
+
 
                 {selectedBounds && <ZoomToBounds bounds={selectedBounds} />}
                 <MapEvents setZoomLevel={setZoomLevel} />
             </MapContainer>
-
         </div>
     );
 };

@@ -18,20 +18,38 @@ api_bp = Blueprint('api', __name__)
 SECRET_JKEY = os.getenv('SECRET_JKEY')
 
 
-dict_CUSTOM_maitre = DictCustomMaitre({})
-dict_CUSTOM_maitre.set_config_type_projet(type_rendu='carte',type_donnees='action',thematique='MIA',public_cible="tech",liste_grand_bassin=['AG'])
+dict_CUSTOM_maitre = None
+dict_dict_info_REF = None
+dict_geom_REF = None
+dict_decoupREF = None
+dict_relation_shp_liste = None
 
-dict_dict_info_REF = DictDfInfoShp({})
-dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()
-dict_geom_REF = Class_NDictGdf.NDictGdf({})
-dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO","DEP","PPG","ME","CE_ME"])
-#dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=["MO"])
-    #Relation géographiques entre CUSTOM et référentiels
-dict_decoupREF = Class_NDictGdf.creation_dict_decoupREF(dict_geom_REF,dict_CUSTOM_maitre)
-    #Relation géographiques entre référentiels
-dict_relation_shp_liste = Class_NDictGdf.extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_CUSTOM_maitre,dict_decoupREF)
+def initialize_data():
+    global dict_CUSTOM_maitre, dict_dict_info_REF, dict_geom_REF, dict_decoupREF, dict_relation_shp_liste
+    
+    if dict_CUSTOM_maitre is None:
+        # Initialise dict_CUSTOM_maitre
+        dict_CUSTOM_maitre = DictCustomMaitre({})
+        dict_CUSTOM_maitre.set_config_type_projet(type_rendu='carte', type_donnees='action', thematique='MIA', public_cible="tech", liste_grand_bassin=['AG'])
 
+        # Initialise dict_dict_info_REF
+        dict_dict_info_REF = DictDfInfoShp({})
+        dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()
 
+        # Initialise dict_geom_REF
+        dict_geom_REF = Class_NDictGdf.NDictGdf({})
+        dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF, dict_CUSTOM_maitre=None, dict_dict_info_REF=dict_dict_info_REF, liste_echelle_REF=["MO", "DEP", "PPG", "ME", "CE_ME"])
+
+        # Relation géographiques entre CUSTOM et référentiels
+        dict_decoupREF = Class_NDictGdf.creation_dict_decoupREF(dict_geom_REF, dict_CUSTOM_maitre)
+
+        # Relation géographiques entre référentiels
+        dict_relation_shp_liste = Class_NDictGdf.extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_CUSTOM_maitre, dict_decoupREF)
+        print("Données initialisées", file=sys.stderr)
+    else:
+        print("Données déjà initialisées", file=sys.stderr)
+
+initialize_data()
 
 @api_bp.route('/api/MO', methods=['GET'])
 def get_MO_geojson():

@@ -184,6 +184,7 @@ def remplissage_dictgdf(self,dict_CUSTOM_maitre=None,dict_dict_info_REF=None,lis
 
     for REF in liste_echelle_REF:
         if REF not in liste_gdf_deja_presents:
+            print("recup"+REF,file=sys.stderr)
             self['gdf_'+REF] = NDictGdf.chercher_gdf(REF)
             if dict_dict_info_REF!=None:
                 if 'df_info_'+REF in dict_dict_info_REF:
@@ -341,7 +342,6 @@ def extraction_dict_relation_shp_liste_a_partir_decoupREF(dict_CUSTOM_maitre=Non
 
     class DictRelationListeREFparREF(dict):
         def __getitem__(self, key):
-            print(key, file=sys.stderr)
             if key not in self:
 
                 REF1 = key.split("_")[2]
