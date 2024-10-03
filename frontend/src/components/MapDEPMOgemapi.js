@@ -111,7 +111,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
         }
     }, [geoJsonData]);
 
-    // Effect to update ME tooltips when selectedFolderId changes
+
     // Effect to update MO tooltips when selectedFolderId changes
     useEffect(() => {
         if (geoJsonLayerRefMO.current && filteredGeoJsonData?.MO.length > 0) {
@@ -122,7 +122,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
                 layer.unbindTooltip();
 
                 // Si selectedFolderId est null, afficher ALIAS
-                if (!selectedFolderId) {
+                if (!selectedFolderIdRef.current) {
                     layer.bindTooltip(labelMO(feature), {
                         permanent: true,
                         direction: "auto",
@@ -142,26 +142,25 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
                 // Supprimer les tooltips existants
                 layer.unbindTooltip();
                 // Si selectedFolderId est non null, afficher "bonjour" pour les ME
+                if (selectedFolderIdRef.current) {
+                    layer.bindTooltip(labelME(feature), {
+                        permanent: true,
+                        direction: "auto",
+                        className: "mo-label"
+                    });
+                }
 
             });
         }
     }, [selectedFolderId, filteredGeoJsonData]);
 
-    useEffect(() => {
-        console.log(`selectedFolderId changed: ${selectedFolderId}`);
-        if (selectedFolderId === null) {
-            // Logique supplémentaire lorsque selectedFolderId redevient null
-        }
-    }, [selectedFolderId]);
-
-
     // labelMO and labelME functions
     const labelMO = (feature) => {
-        return feature.properties.ALIAS || 'Pas d\'alias'; // Renvoie l'ALIAS ou un message par défaut
+        return feature.properties.ALIAS; // Renvoie l'ALIAS ou un message par défaut
     };
 
     const labelME = (feature) => {
-        return 'Bonjour'; // Retourne le texte de l'étiquette pour ME
+        return feature.id; // Retourne le texte de l'étiquette pour ME
     };
 
 
@@ -235,22 +234,22 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
         });
     };
 
-useEffect(() => {
-    // Réappliquer le style aux couches MO et ME lors du changement de selectedFolderId
-    if (geoJsonLayerRefMO.current) {
-        geoJsonLayerRefMO.current.eachLayer((layer) => {
-            layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current));
-        });
-    }
+    useEffect(() => {
+        // Réappliquer le style aux couches MO et ME lors du changement de selectedFolderId
+        if (geoJsonLayerRefMO.current) {
+            geoJsonLayerRefMO.current.eachLayer((layer) => {
+                layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current));
+            });
+        }
 
-    if (geoJsonLayerRefME.current) {
-        geoJsonLayerRefME.current.eachLayer((layer) => {
-            layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current));
-        });
-    }
-}, [selectedFolderId, highlightedFolderId, highlightedMEId]); // Déclencher lorsque ces variables changent
+        if (geoJsonLayerRefME.current) {
+            geoJsonLayerRefME.current.eachLayer((layer) => {
+                layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current));
+            });
+        }
+    }, [selectedFolderId, highlightedFolderId, highlightedMEId]); // Déclencher lorsque ces variables changent
 
-    
+
 
     useEffect(() => {
         if (geoJsonLayerRefME.current) {
@@ -260,12 +259,15 @@ useEffect(() => {
             });
         }
     }, [selectedFolderId]);
-    
+
 
 
     const style = (feature, highlightedFolderId, highlightedMEId) => {
         const category = feature.properties['type_REF'];
+        const isMOSelected = selectedFolderIdRef.current === feature.id;
+        const isAnyMOSelected = selectedFolderIdRef.current !== null;
         const featureId = feature.id; // Vérifiez que l'ID est correct
+
 
         // Vérifiez si l'entité ME doit être surlignée
         const isMEHighlighted = highlightedMEId === featureId;
@@ -291,15 +293,25 @@ useEffect(() => {
 
         // Styles par défaut pour d'autres types
         if (category === 'MO') {
-            console.log(`selectedFolderIdRef.current: ${selectedFolderIdRef.current}`);
-            return {
-                color: selectedFolderIdRef.current === null ? 'pink' : 'green',
-                weight: 5,
-                fillColor: selectedFolderIdRef.current === null ? 'rgba(0, 255, 0, 0.1)' : 'rgba(255, 192, 203, 0.1)',
-                fillOpacity: 0.1,
-                opacity: 1,
-                interactive: selectedFolderIdRef.current === null ? true : false
-            };
+            if (isAnyMOSelected) {
+                return {
+                    color: isMOSelected ? 'green' : 'white', // Green pour le MO sélectionné, blanc pour les autres
+                    weight: isMOSelected ? 6 : 1, // Weight de 6 pour le MO sélectionné, 2 pour les autres
+                    fillColor: 'rgba(0, 255, 0, 0.1)',
+                    fillOpacity: 0.1,
+                    opacity: 1,
+                    interactive: selectedFolderIdRef.current === null
+                };
+            } else {
+                return {
+                    color: 'green', // Tous les MO sont verts si aucun n'est sélectionné
+                    weight: 5, // Weight de 5 si aucun MO sélectionné
+                    fillColor: 'rgba(0, 255, 0, 0.1)',
+                    fillOpacity: 0.1,
+                    opacity: 1,
+                    interactive: true // Interactif si aucun n'est sélectionné
+                };
+            }
         }
         if (category === 'PPG' || category === 'ME') {
             return {
@@ -379,7 +391,7 @@ useEffect(() => {
                 {/* Render MO GeoJSON */}
                 {filteredGeoJsonData?.MO.length > 0 && (
                     <GeoJSON
-                    key={`mo-${filteredGeoJsonData.MO.map(feature => feature.id).join('-')}-${selectedFolderId || 'none'}`} // Utilisation des IDs uniques + selectedFolderId pour forcer le rendu
+                        key={`mo-${filteredGeoJsonData.MO.map(feature => feature.id).join('-')}-${selectedFolderId || 'none'}`} // Utilisation des IDs uniques + selectedFolderId pour forcer le rendu
                         data={filteredGeoJsonData.MO}
                         ref={geoJsonLayerRefMO}
                         onEachFeature={(feature, layer) => onEachFeatureMO(feature, layer)} // selectedFolderIdRef est déjà accessible dans la fonction
