@@ -139,14 +139,7 @@ class NDictGdf(dict):
             # Sauvegarder le GeoDataFrame en tant que shapefile localement
             self['gdf_'+type_REF].gdf.to_file(temp_shapefile_path, driver='GPKG', encoding='utf-8')
             s3.upload_file(temp_shapefile_path, bucket_common_files, "shp_files/syndicats GEMAPI/MO_gemapi_NA.gpkg")
-            # Récupérer les fichiers associés (.shp, .shx, .dbf, etc.)
-            '''for file_name in os.listdir(temp_dir):
-                file_path = os.path.join(temp_dir, file_name)
 
-                # Upload vers S3
-                s3_key = self['gdf_'+type_REF].path_relative
-                s3.upload_file(file_path, bucket_common_files, s3_key)
-                print(f"Actualisation du "+ s3_key + " dans le s3 "+ bucket_common_files)'''
 
         finally:
             # Supprimer les fichiers temporaires et le dossier

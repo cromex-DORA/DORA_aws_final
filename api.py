@@ -71,6 +71,8 @@ def get_MO_geojson():
     dict_geom_MO = NDictGdf.recuperation_gdf_REF(dict_geom_REF,"MO")
     dict_geom_MO = NGdfREF.selection_par_DEP(dict_geom_MO,"MO",CODE_DEP,dict_relation_shp_liste)
     dict_geom_MO = NGdfREF.ajout_TYPE_MO(dict_geom_MO)
+    dict_geom_MO = NGdfREF.ajout_LISTE_ME(dict_geom_MO,dict_relation_shp_liste)
+    dict_geom_MO = NGdfREF.ajout_dict_coordonnes_ME(dict_geom_MO,dict_decoupREF)
     geojson_data_MO_gemapi=NGdfREF.export_gdf_pour_geojson(dict_geom_MO)
 
     dict_folders = {item['id']:item for item in dict_sous_dossiers}
@@ -125,6 +127,7 @@ def get_ME_geojson():
     print(CODE_DEP, file=sys.stderr)
     dict_geom_TYPE_REF = NDictGdf.recuperation_gdf_REF(dict_geom_REF,type_REF)
     dict_geom_TYPE_REF = NGdfREF.selection_par_DEP(dict_geom_TYPE_REF,type_REF,CODE_DEP,dict_relation_shp_liste)
+    dict_geom_TYPE_REF = NGdfREF.ajout_nom_ME_simplifie(dict_geom_TYPE_REF,dict_decoupREF)
     geojson_data_ME_gemapi=NGdfREF.export_gdf_pour_geojson(dict_geom_TYPE_REF)
 
     response = geojson_data_ME_gemapi

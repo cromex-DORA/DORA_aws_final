@@ -3,10 +3,11 @@ import geopandas as gpd
 from app.DORApy.classes.modules.connect_path import s3
 from app.DORApy.classes.modules import connect_path
 from shapely import Polygon,MultiPolygon
+from collections import ChainMap
 import json
 import pandas as pd
 import os
-import fsspec
+import copy
 
 environment = os.getenv('ENVIRONMENT')
 chemin_fichiers_shp = os.getenv('chemin_fichiers_shp')
@@ -88,10 +89,35 @@ class NGdfREF:
         dict_gdf_REF.gdf = pd.merge(dict_gdf_REF.gdf,bounds,left_index=True,right_index=True)
         return dict_gdf_REF 
     
+
+    ####Pour la couche MO
     def ajout_TYPE_MO(dict_gdf_REF):
         dict_gdf_REF.gdf = pd.merge(dict_gdf_REF.gdf,dict_gdf_REF.df_info[['CODE_MO',"TYPE_MO"]],on="CODE_MO")
         return dict_gdf_REF
 
+    def ajout_LISTE_ME(dict_gdf_REF,dict_relation):
+        dict_relation_liste_ME_par_MO = dict_relation['dict_liste_ME_par_MO']
+        dict_gdf_REF.gdf['liste_CODE_ME'] = dict_gdf_REF.gdf['CODE_MO'].map(dict_relation_liste_ME_par_MO)
+        return dict_gdf_REF
+    
+    def ajout_dict_coordonnes_ME(dict_gdf_REF,dict_decoupREF):
+        decoupME_tempo = copy.deepcopy(dict_decoupREF['gdf_decoupME_MO'].gdf)
+        decoupME_tempo = decoupME_tempo.to_crs("EPSG:4326")
+        decoupME_tempo['coord_centre_ME']=decoupME_tempo.representative_point()
+        decoupME_tempo = decoupME_tempo.loc[decoupME_tempo['coord_centre_ME']!=None]
+        decoupME_tempo['coord_centre_ME'] = decoupME_tempo['coord_centre_ME'].apply(lambda geom: [geom.x, geom.y])
+        decoupME_tempo['dict_CODE_ME_et_coord'] = decoupME_tempo.apply(lambda x:{x['CODE_ME']:x['coord_centre_ME']},axis=1)
+        def merge_dicts(dicts):
+            # Utilisation de ChainMap pour fusionner plusieurs dictionnaires
+            return dict(ChainMap(*dicts))
+        decoupME_tempo = decoupME_tempo.groupby('CODE_MO')['dict_CODE_ME_et_coord'].agg(merge_dicts).reset_index()
+        dict_gdf_REF.gdf = pd.merge(dict_gdf_REF.gdf,decoupME_tempo,on="CODE_MO")
+        return dict_gdf_REF
+    
+    ####Pour la couche ME
+    def ajout_nom_ME_simplifie(dict_gdf_REF):
+        dict_gdf_REF.gdf = pd.merge(dict_gdf_REF.gdf,dict_gdf_REF.df_info[['CODE_ME','ALIAS']],on="CODE_ME")
+        return dict_gdf_REF
 
 def chercher_gdf_CUSTOM(dict_CUSTOM_maitre,dict_geom_REF,dict_dict_info_REF):
     list_tempo_gdf_CUSTOM = []
