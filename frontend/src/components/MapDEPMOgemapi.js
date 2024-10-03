@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
+import L from 'leaflet'; // Pour accéder à l'objet global de Leaflet
 import FiltretypeMO from './FiltretypeMO';
 import FiltretypeSOUSREF from './FiltretypeSOUSREF';
 import TabImportShpModal from './TabImportShpModal';
@@ -36,7 +37,7 @@ const MapEvents = ({ setZoomLevel }) => {
 
 
 
-const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, setHighlightedFolderId, handleFolderClick }) => {
+const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, highlightedFolderId, setHighlightedFolderId, handleFolderClick }) => {
     console.log("Highlighted Folder ID in Map:", highlightedFolderId);
     const [filter, setFilter] = useState('Syndicat');
     const [selectedType, setSelectedType] = useState('ME');
@@ -54,6 +55,7 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     const geoJsonLayerRefPPG = useRef(); // Référence pour PPG
     const geoJsonLayerRefCEME = useRef(); // Référence pour CE_ME
     const selectedFolderIdRef = useRef(selectedFolderId);
+    let maVariable = null;
 
 
     useEffect(() => {
@@ -166,59 +168,59 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
     const onEachFeatureMO = (feature, layer) => {
         layer.on({
             click: () => {
-                if (!selectedFolderIdRef.current) {
+                if (selectedFolderIdRef.current == null) {
                     const bounds = layer.getBounds();
                     setSelectedBounds(bounds);
-    
+
                     handleFolderClick({
                         id: feature.id,
                         name: feature.properties.NOM_MO,
                         path: feature.properties.path || '',
                         files: feature.properties.files || []
                     });
-    
+
                     // Enlève le surlignage après le clic
+                    setSelectedFolderId(feature.id);
                     setHighlightedFolderId(null);
-                    layer.setStyle(style(feature, false)); // Réapplique le style normal
+                    layer.setStyle(style(feature)); // Réapplique le style normal
+                    geoJsonLayerRefMO.current.eachLayer((layer) => {
+                        layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderId));
+                    });
+                    console.log(`selectedFolderIdRef.current: ${selectedFolderIdRef.current}`);
+                    console.log(`selectedFolderIdRef.current: ${selectedFolderIdRef}`);
                 }
             },
             mouseover: () => {
-                if (!selectedFolderIdRef.current) {
+                if (selectedFolderIdRef.current == null) {
                     setHighlightedFolderId(feature.id);
                     layer.setStyle(style(feature, true)); // Applique le style de surbrillance
                 }
             },
             mouseout: () => {
-                if (!selectedFolderIdRef.current) {
+                if (selectedFolderIdRef.current == null) {
                     layer.setStyle(style(feature, false)); // Réapplique le style normal
                     setHighlightedFolderId(null);
                 }
             }
         });
     };
-    
+
     const onEachFeatureME = (feature, layer) => {
         layer.on({
             click: () => {
+                console.log('Clic détecté sur le ME');
                 if (selectedFolderIdRef.current) {
                     const bounds = layer.getBounds();
                     setSelectedBounds(bounds);
-    
-                    handleFolderClick({
-                        id: feature.id,
-                        name: feature.properties.NOM_ME,
-                        path: feature.properties.path || '',
-                        files: feature.properties.files || []
-                    });
-    
+
                     // Mettre à jour l'état pour le ME sélectionné
                     setSelectedMEId(feature.id);
                     setSelectedMEName(feature.properties.NOM_ME);
                 }
             },
             mouseover: () => {
-                console.log(`ME mouseover: selectedFolderId = ${selectedFolderIdRef.current}, feature.id = ${feature.id}`);
-    
+                console.log("alloa", selectedFolderIdRef.current)
+
                 if (selectedFolderIdRef.current) {
                     setHighlightedMEId(feature.id); // Met à jour avec l'ID de surlignage ME
                     layer.setStyle(style(feature, true)); // Applique le style de surbrillance
@@ -232,51 +234,71 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
             }
         });
     };
+
+useEffect(() => {
+    // Réappliquer le style aux couches MO et ME lors du changement de selectedFolderId
+    if (geoJsonLayerRefMO.current) {
+        geoJsonLayerRefMO.current.eachLayer((layer) => {
+            layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current));
+        });
+    }
+
+    if (geoJsonLayerRefME.current) {
+        geoJsonLayerRefME.current.eachLayer((layer) => {
+            layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current));
+        });
+    }
+}, [selectedFolderId, highlightedFolderId, highlightedMEId]); // Déclencher lorsque ces variables changent
+
     
 
-
-
-
-    const showSelectedFolderId = () => {
-        alert(`Current selectedFolderId: ${selectedFolderId}`);
-        console.log(`Current selectedFolderId in alert: ${selectedFolderId}`);
-    };
+    useEffect(() => {
+        if (geoJsonLayerRefME.current) {
+            // Réappliquer le style à chaque changement de selectedFolderId pour la couche ME
+            geoJsonLayerRefME.current.eachLayer((layer) => {
+                layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current));
+            });
+        }
+    }, [selectedFolderId]);
+    
 
 
     const style = (feature, highlightedFolderId, highlightedMEId) => {
         const category = feature.properties['type_REF'];
         const featureId = feature.id; // Vérifiez que l'ID est correct
-    
+
         // Vérifiez si l'entité ME doit être surlignée
         const isMEHighlighted = highlightedMEId === featureId;
-    
+
         // Vérifiez si l'entité MO doit être surlignée
         const isMOHighlighted = highlightedFolderId === featureId;
-    
+
         if (isMOHighlighted) {
             return {
                 color: 'yellow',
                 weight: 5,
-                fillOpacity: 0.6
+                fillOpacity: 0.6,
             };
         }
-    
+
         if (isMEHighlighted) {
             return {
                 color: 'blue', // Couleur pour ME surligné
                 weight: 1,
-                fillOpacity: 0.6
+                fillOpacity: 0.6,
             };
         }
-    
+
         // Styles par défaut pour d'autres types
         if (category === 'MO') {
+            console.log(`selectedFolderIdRef.current: ${selectedFolderIdRef.current}`);
             return {
-                color: 'green',
+                color: selectedFolderIdRef.current === null ? 'pink' : 'green',
                 weight: 5,
-                fillColor: 'rgba(0, 255, 0, 0.1)',
+                fillColor: selectedFolderIdRef.current === null ? 'rgba(0, 255, 0, 0.1)' : 'rgba(255, 192, 203, 0.1)',
                 fillOpacity: 0.1,
                 opacity: 1,
+                interactive: selectedFolderIdRef.current === null ? true : false
             };
         }
         if (category === 'PPG' || category === 'ME') {
@@ -295,11 +317,19 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
                 opacity: 1,
             };
         }
-    
+
         return {}; // Style par défaut
     };
-    
 
+    const showSelectedFolderId = () => {
+        if (selectedFolderIdRef.current === null) {
+            alert("Current selectedFolderId is null.");
+            console.log("Current selectedFolderId is null.");
+        } else {
+            alert(`Current selectedFolderId: ${selectedFolderIdRef.current}`);
+            console.log(`Current selectedFolderId in alert: ${selectedFolderIdRef.current}`);
+        }
+    };
 
     // Attendre que les initialBounds soient définis avant de rendre la carte
     if (!initialBounds) {
@@ -338,13 +368,25 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
                 {/* Render ME GeoJSON */}
                 {filteredGeoJsonData?.ME.length > 0 && (
                     <GeoJSON
-                        key={`me-${filteredGeoJsonData.ME.map(feature => feature.id).join('-')}`}
+                        key={`ME-${filteredGeoJsonData.ME.map(feature => feature.id).join('-')}`} // Utilisation des IDs uniques ici
                         data={filteredGeoJsonData.ME}
                         ref={geoJsonLayerRefME}
-                        onEachFeature={(feature, layer) => onEachFeatureME(feature, layer)}
-                        style={(feature) => style(feature, highlightedFolderId, highlightedMEId)} // Utilisez ici les ID de surlignage
+                        onEachFeature={(feature, layer) => onEachFeatureME(feature, layer)} // selectedFolderIdRef est déjà accessible dans la fonction
+                        style={(feature) => style(feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current)} // On passe la référence
                     />
                 )}
+
+                {/* Render MO GeoJSON */}
+                {filteredGeoJsonData?.MO.length > 0 && (
+                    <GeoJSON
+                    key={`mo-${filteredGeoJsonData.MO.map(feature => feature.id).join('-')}-${selectedFolderId || 'none'}`} // Utilisation des IDs uniques + selectedFolderId pour forcer le rendu
+                        data={filteredGeoJsonData.MO}
+                        ref={geoJsonLayerRefMO}
+                        onEachFeature={(feature, layer) => onEachFeatureMO(feature, layer)} // selectedFolderIdRef est déjà accessible dans la fonction
+                        style={(feature) => style(feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current)} // On passe la référence
+                    />
+                )}
+
 
                 {/* Render PPG GeoJSON */}
                 {filteredGeoJsonData?.PPG.length > 0 && (
@@ -367,16 +409,7 @@ const MapDEPMOgemapi = ({ geoJsonData, selectedFolderId, highlightedFolderId, se
                     />
                 )}
 
-                {/* Render MO GeoJSON */}
-                {filteredGeoJsonData?.MO.length > 0 && (
-                    <GeoJSON
-                        key={`mo-${filteredGeoJsonData.MO.map(feature => feature.id).join('-')}`} // Utilisation des IDs uniques ici
-                        data={filteredGeoJsonData.MO}
-                        ref={geoJsonLayerRefMO}
-                        onEachFeature={(feature, layer) => onEachFeatureMO(feature, layer, selectedFolderId)}
-                        style={(feature) => style(feature, highlightedFolderId)}
-                    />
-                )}
+
 
 
 
