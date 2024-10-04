@@ -85,6 +85,7 @@ const Milieuxaquatiques = () => {
     const handleFolderClick = (folder) => {
         setSelectedFolderId(folder.id);
         selectedFolderIdRef.current = folder.id;
+        setHighlightedFolderId(null);
         // Les états dépendants seront mis à jour via useEffect
     };
 
