@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import MapDEPMOgemapi from './MapDEPMOgemapi';
 import ContenuMO from './ContenuMO';
@@ -23,6 +23,7 @@ const Milieuxaquatiques = () => {
     const [view, setView] = useState('folders');
     const [highlightedFolderId, setHighlightedFolderId] = useState(null);
     const [selectedMEId, setSelectedMEId] = useState(null);
+    const selectedFolderIdRef = useRef(null);
 
     const geoJsonData = {
         type: "FeatureCollection",
@@ -49,6 +50,7 @@ const Milieuxaquatiques = () => {
         dispatch(fetchCEMEThunk());
     }, [dispatch]);
 
+    // Charger les dossiers à partir de geoJsonMO
     useEffect(() => {
         if (geoJsonMO) {
             const folderData = geoJsonMO.features.map(feature => ({
@@ -60,39 +62,45 @@ const Milieuxaquatiques = () => {
         }
     }, [geoJsonMO]);
 
+    // UseEffect pour réagir aux changements de selectedFolderId
     useEffect(() => {
-        if (selectedFolderId) {
+        if (selectedFolderId === null) {
+            // Si selectedFolderId est null, réinitialiser les états dépendants
+            setFiles([]);
+            setCurrentPath('');
+            setFolderName('');
+            setView('folders'); // Revenir à la vue des dossiers
+        } else {
+            // Si selectedFolderId change, trouver le dossier correspondant et mettre à jour les états
             const selectedFolder = folders.find(folder => folder.id === selectedFolderId);
             if (selectedFolder) {
                 setFiles(selectedFolder.files || []);
                 setCurrentPath(selectedFolder.path || '');
                 setFolderName(selectedFolder.name || '');
-                setView('files');
+                setView('files'); // Afficher les fichiers du dossier
             }
         }
     }, [selectedFolderId, folders]);
 
-
-
     const handleFolderClick = (folder) => {
         setSelectedFolderId(folder.id);
-        setFiles(folder.files || []);
-        setCurrentPath(folder.path || '');
-        setFolderName(folder.name || '');
-        setView('files');
+        selectedFolderIdRef.current = folder.id;
+        // Les états dépendants seront mis à jour via useEffect
     };
 
     const handleBackClick = () => {
         setSelectedFolderId(null);
-        setFiles([]);
-        setCurrentPath('');
-        setFolderName('');
-        setView('folders');
+        selectedFolderIdRef.current = null;
     };
 
     const handleMESelect = (meId) => {
         setSelectedMEId(meId);
         console.log('ME sélectionnée ID:', meId); // Vérifiez que l'ID est correctement passé
+    };
+
+    const resetSelectedFolderId = () => {
+        setSelectedFolderId(null);
+        selectedFolderIdRef.current = null; // Réinitialiser également la référence
     };
 
     return (
@@ -113,6 +121,7 @@ const Milieuxaquatiques = () => {
                     highlightedFolderId={highlightedFolderId}
                     setHighlightedFolderId={setHighlightedFolderId}
                     selectedFolderId={selectedFolderId}
+                    resetSelectedFolderId={resetSelectedFolderId}
                 />
             </div>
             <div className="map-container">
@@ -130,7 +139,12 @@ const Milieuxaquatiques = () => {
                 <ContenuSousRef selectedMEId={selectedMEId} />
             </div>
             <div className="other-section">
-                {/* Autres sections ou informations */}
+                {/* Affichage de la valeur de selectedFolderId */}
+                <h4>Folder ID sélectionné: {selectedFolderId !== null ? selectedFolderId : 'Aucun'}</h4>
+                {/* Bouton pour réinitialiser selectedFolderId */}
+                <button onClick={resetSelectedFolderId}>
+                    Réinitialiser le dossier sélectionné
+                </button>
             </div>
         </div>
     );

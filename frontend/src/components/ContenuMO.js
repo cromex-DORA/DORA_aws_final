@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from 'react-bootstrap';
 import LoadingModal from './LoadingModal';
 
@@ -16,15 +16,20 @@ const ContenuMO = ({
     const [message, setMessage] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [fileToUpload, setFileToUpload] = useState(null);
-    const fileInputRef = useRef(null); // Référence pour l'input de fichier
+    const fileInputRef = useRef(null);
+    const [filteredFolders, setFilteredFolders] = useState(folders);
+
+
+    useEffect(() => {
+        const result = folders.filter(folder =>
+            folder.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredFolders(result);
+    }, [folders, selectedFolderId , searchQuery]);
 
     const handleSearchChange = (e) => {
-        setSearchQuery(e.target.value.toLowerCase());
+        setSearchQuery(e.target.value);
     };
-
-    const filteredFolders = folders.filter(folder =>
-        folder.name.toLowerCase().includes(searchQuery)
-    );
 
     const downloadFile = async (path) => {
         console.log('Attempting to download file from path:', path);
@@ -126,75 +131,88 @@ const ContenuMO = ({
 
     return (
         <div>
-            {/* Affichage conditionnel de la barre de recherche */}
+            {/* Affichage conditionnel de la barre de recherche et des dossiers */}
             {!selectedFolderId && (
-                <input
-                    type="text"
-                    placeholder="Rechercher un dossier..."
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    style={{ marginBottom: '10px', display: 'block' }}
-                />
+                <div>
+                    <input
+                        type="text"
+                        placeholder="Rechercher un dossier..."
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        style={{ marginBottom: '10px', display: 'block' }}
+                    />
+
+                    {/* Liste des dossiers */}
+                    <ul>
+                        {filteredFolders.length > 0 ? (
+                            filteredFolders.map((folder) => (
+                                <li
+                                    key={folder.id}
+                                    onClick={() => handleFolderClick(folder)}
+                                    onMouseOver={() => setHighlightedFolderId(folder.id)}
+                                    onMouseOut={() => setHighlightedFolderId(null)}
+                                    style={{
+                                        cursor: 'pointer',
+                                        color: highlightedFolderId === folder.id ? 'red' : 'blue',
+                                        fontWeight: highlightedFolderId === folder.id ? 'bold' : 'normal'
+                                    }}
+                                >
+                                    📁 {folder.name}
+                                </li>
+                            ))
+                        ) : (
+                            <p>Aucun dossier trouvé</p>
+                        )}
+                    </ul>
+                </div>
             )}
 
-            {/* Liste des dossiers et fichiers */}
-            <ul>
-                {filteredFolders.map((folder) => (
-                    <li
-                        key={folder.id}
-                        onClick={() => handleFolderClick(folder)}
-                        onMouseOver={() => setHighlightedFolderId(folder.id)}
-                        onMouseOut={() => setHighlightedFolderId(null)}
-                        style={{
-                            cursor: 'pointer',
-                            color: highlightedFolderId === folder.id ? 'red' : 'blue',
-                            fontWeight: highlightedFolderId === folder.id ? 'bold' : 'normal'
-                        }}
-                    >
-                        📁 {folder.name}
-                    </li>
-                ))}
-                {files.map((file, index) => (
-                    <li key={index}>
-                        <span
-                            onClick={() => downloadFile(selectedFolderId ? `${selectedFolderId}/${file}` : file)}
-                            style={{ cursor: 'pointer', color: 'blue' }}
-                        >
-                            {file}
-                        </span>
-                    </li>
-                ))}
-            </ul>
-
-            {/* Si un dossier est sélectionné, diviser l'affichage et ajouter les boutons */}
+            {/* Si un dossier est sélectionné, afficher les fichiers et les boutons */}
             {selectedFolderId && (
-                <div style={{ marginTop: '20px' }}>
+                <div>
                     <hr />
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
-                        <button onClick={createtableauviergeMO}>
-                            Créer tableau vierge MO
-                        </button>
-                        <button onClick={openFileExplorer} style={{ marginLeft: '10px' }}>
-                            Vérifier un tableau
-                        </button>
-                        {/* Modal de chargement réutilisable */}
-                        <LoadingModal
-                            isOpen={isLoading}
-                            onRequestClose={() => setIsLoading(false)}
-                            message="Création du fichier en cours..."
+                    {/* Liste des fichiers */}
+                    <ul>
+                        {files.map((file, index) => (
+                            <li key={index}>
+                                <span
+                                    onClick={() => downloadFile(selectedFolderId ? `${selectedFolderId}/${file}` : file)}
+                                    style={{ cursor: 'pointer', color: 'blue' }}
+                                >
+                                    {file}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                    
+                    <div style={{ marginTop: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                            <button onClick={createtableauviergeMO}>
+                                Créer tableau vierge MO
+                            </button>
+                            <button onClick={openFileExplorer} style={{ marginLeft: '10px' }}>
+                                Vérifier un tableau
+                            </button>
+                            
+                            {/* Modal de chargement réutilisable */}
+                            <LoadingModal
+                                isOpen={isLoading}
+                                onRequestClose={() => setIsLoading(false)}
+                                message="Création du fichier en cours..."
+                            />
+
+                            {/* Message de succès ou d'erreur */}
+                            {message && <p>{message}</p>}
+                        </div>
+
+                        {/* Champ d'importation de fichier invisible */}
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: 'none' }} // Cache l'input
+                            onChange={handleFileChange}
                         />
-
-                        {/* Message de succès ou d'erreur */}
-                        {message && <p>{message}</p>}
                     </div>
-
-                    {/* Champ d'importation de fichier invisible */}
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        style={{ display: 'none' }} // Cache l'input
-                        onChange={handleFileChange}
-                    />
                 </div>
             )}
         </div>

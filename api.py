@@ -163,5 +163,4 @@ def get_icons():
     dict_icone = DictIcone()
     dict_icone = dict_icone.remplissage_dict_icone("MIA","PRESS")
     dict_icone_pour_json = {nom_icone:icone_dict.url_publique for nom_icone,icone_dict in dict_icone.items()}
-    print(dict_icone_pour_json)
     return jsonify(dict_icone_pour_json)

@@ -8,6 +8,8 @@ import 'leaflet/dist/leaflet.css';
 import './MapDEPMOgemapi.css';
 import { Button } from 'react-bootstrap';
 import { useMapEvents } from 'react-leaflet';
+import { useDispatch } from 'react-redux';
+import { fetchMOThunk } from '../features/geojson/geojsonSlice';
 
 // Composant pour ajuster la vue de la carte en fonction des limites
 const ZoomToBounds = ({ bounds }) => {
@@ -50,15 +52,17 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
     const mapRef = useRef();
     const geoJsonLayerRefME = useRef();  // Référence pour ME
     const geoJsonLayerRefMO = useRef();  // Référence pour MO
+    const [geoJsonKey, setGeoJsonKey] = useState(0);
     const geoJsonLayerRefPPG = useRef(); // Référence pour PPG
     const geoJsonLayerRefCEME = useRef(); // Référence pour CE_ME
     const selectedFolderIdRef = useRef(selectedFolderId);
     const [listeMEparMOselected, setListeMEparMOselected] = useState([]);
+    const dispatch = useDispatch();
 
 
     useEffect(() => {
         selectedFolderIdRef.current = selectedFolderId; // Mets à jour la référence à chaque changement
-
+        console.log("apres le click :",selectedFolderIdRef.current)
         // Vérifie si selectedFolderId n'est pas null
         if (selectedFolderId) {
             // Trouver la MO sélectionnée dans filteredGeoJsonData
@@ -125,7 +129,6 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
     }, [geoJsonData]);
 
 
-    // Effect to update MO tooltips when selectedFolderId changes
     useEffect(() => {
         if (geoJsonLayerRefMO.current && filteredGeoJsonData?.MO.length > 0) {
             geoJsonLayerRefMO.current.eachLayer(layer => {
@@ -144,7 +147,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
                 }
             });
         }
-    }, [selectedFolderId, filteredGeoJsonData, zoomLevel]); // Ajout de zoomLevel comme dépendance
+    }, [selectedFolderId, filteredGeoJsonData, zoomLevel]); 
 
 
     useEffect(() => {
@@ -192,6 +195,21 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
         return feature.properties.ALIAS; // Retourne le texte de l'étiquette pour ME
     };
 
+    useEffect(() => {
+        // Réappliquer le style aux couches MO et ME lors du changement de selectedFolderId
+        if (geoJsonLayerRefMO.current) {
+            geoJsonLayerRefMO.current.eachLayer((layer) => {
+                layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current));
+            });
+        }
+
+        if (geoJsonLayerRefME.current) {
+            geoJsonLayerRefME.current.eachLayer((layer) => {
+                layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current));
+            });
+        }
+    }, [selectedFolderId, highlightedFolderId, highlightedMEId]); // Déclencher lorsque ces variables changent
+
 
     const onEachFeatureMO = (feature, layer) => {
         const listeMEparMOselected = feature.properties.liste_CODE_ME || [];
@@ -210,11 +228,8 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
 
                     // Enlève le surlignage après le clic
                     setSelectedFolderId(feature.id);
+                    selectedFolderIdRef.current = feature.id;
                     setHighlightedFolderId(null);
-                    layer.setStyle(style(feature)); // Réapplique le style normal
-                    geoJsonLayerRefMO.current.eachLayer((layer) => {
-                        layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderId));
-                    });
                 }
             },
             mouseover: () => {
@@ -236,6 +251,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
     const onEachFeatureME = (feature, layer) => {
         layer.on({
             click: () => {
+                console.log("apres le click ME",selectedFolderId)
                 console.log('Clic détecté sur le ME');
                 console.log("le folder",selectedFolderIdRef.current)
                 if (selectedFolderIdRef.current) {
@@ -260,22 +276,6 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
             }
         });
     };
-
-    useEffect(() => {
-        // Réappliquer le style aux couches MO et ME lors du changement de selectedFolderId
-        if (geoJsonLayerRefMO.current) {
-            geoJsonLayerRefMO.current.eachLayer((layer) => {
-                layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current));
-            });
-        }
-
-        if (geoJsonLayerRefME.current) {
-            geoJsonLayerRefME.current.eachLayer((layer) => {
-                layer.setStyle(style(layer.feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current));
-            });
-        }
-    }, [selectedFolderId, highlightedFolderId, highlightedMEId]); // Déclencher lorsque ces variables changent
-
 
 
     const style = (feature, highlightedFolderId, highlightedMEId) => {
@@ -316,7 +316,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
                     fillColor: 'rgba(0, 255, 0, 0.1)',
                     fillOpacity: 0.1,
                     opacity: 1,
-                    interactive: selectedFolderIdRef.current === null
+                    interactive: false
                 };
             } else {
                 return {
@@ -418,15 +418,16 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
                         key={`ME-${filteredGeoJsonData.ME.length}`}
                         data={filteredGeoJsonData.ME}
                         ref={geoJsonLayerRefME}
-                        onEachFeature={(feature, layer) => onEachFeatureME(feature, layer)} // selectedFolderIdRef est déjà accessible dans la fonction
                         style={(feature) => style(feature, highlightedFolderId, highlightedMEId, selectedFolderIdRef.current)} // On passe la référence
+                        onEachFeature={(feature, layer) => onEachFeatureME(feature, layer)} // selectedFolderIdRef est déjà accessible dans la fonction
+                        
                     />
                 )}
 
                 {/* Render MO GeoJSON */}
                 {filteredGeoJsonData?.MO.length > 0 && (
                     <GeoJSON
-                        key={`mo-${filteredGeoJsonData.MO.map(feature => feature.id).join('-')}-${selectedFolderId || 'none'}`} // Utilisation des IDs uniques + selectedFolderId pour forcer le rendu
+                    key={`mo-${geoJsonKey}-${filteredGeoJsonData.MO.map(feature => feature.id).join('-')}-${selectedFolderId || 'none'}`} // Utilisation de geoJsonKey
                         data={filteredGeoJsonData.MO}
                         ref={geoJsonLayerRefMO}
                         onEachFeature={(feature, layer) => onEachFeatureMO(feature, layer)} // selectedFolderIdRef est déjà accessible dans la fonction
