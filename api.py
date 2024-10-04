@@ -9,6 +9,7 @@ from app.DORApy.classes.Class_DictDfInfoShp import DictDfInfoShp
 from app.DORApy.classes import Class_NDictGdf,Class_NGdfREF
 from app.DORApy.classes.Class_NDictGdf import NDictGdf
 from app.DORApy.classes.Class_NGdfREF import NGdfREF
+from app.DORApy.classes.Class_DictIconeDORA import DictIcone
 import jwt
 import os
 
@@ -49,7 +50,8 @@ def initialize_data():
     else:
         print("Données déjà initialisées", file=sys.stderr)
 
-initialize_data()
+if  os.getenv('ENVIRONMENT')!="test":
+    initialize_data()
 
 @api_bp.route('/api/MO', methods=['GET'])
 def get_MO_geojson():
@@ -127,7 +129,7 @@ def get_ME_geojson():
     print(CODE_DEP, file=sys.stderr)
     dict_geom_TYPE_REF = NDictGdf.recuperation_gdf_REF(dict_geom_REF,type_REF)
     dict_geom_TYPE_REF = NGdfREF.selection_par_DEP(dict_geom_TYPE_REF,type_REF,CODE_DEP,dict_relation_shp_liste)
-    dict_geom_TYPE_REF = NGdfREF.ajout_nom_ME_simplifie(dict_geom_TYPE_REF,dict_decoupREF)
+    dict_geom_TYPE_REF = NGdfREF.ajout_nom_ME_simplifie(dict_geom_TYPE_REF)
     geojson_data_ME_gemapi=NGdfREF.export_gdf_pour_geojson(dict_geom_TYPE_REF)
 
     response = geojson_data_ME_gemapi
@@ -155,3 +157,11 @@ def get_CE_ME_geojson():
 
     response = geojson_data_ME_gemapi
     return jsonify(response), 200
+
+@api_bp.route('/api/icons_DORA', methods=['GET'])
+def get_icons():
+    dict_icone = DictIcone()
+    dict_icone = dict_icone.remplissage_dict_icone("MIA","PRESS")
+    dict_icone_pour_json = {nom_icone:icone_dict.url_publique for nom_icone,icone_dict in dict_icone.items()}
+    print(dict_icone_pour_json)
+    return jsonify(dict_icone_pour_json)

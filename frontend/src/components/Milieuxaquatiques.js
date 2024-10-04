@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import MapDEPMOgemapi from './MapDEPMOgemapi';
-import ContenuMO from './ContenuMO'; // Renommé ici
-import Breadcrumb from './Breadcrumb'; 
-import { jwtDecode } from 'jwt-decode'; 
+import ContenuMO from './ContenuMO';
+import Breadcrumb from './Breadcrumb';
+import ContenuSousRef from './ContenuSousRef';
+import { jwtDecode } from 'jwt-decode';
 import './Milieuxaquatiques.css';
 import { fetchMOThunk, fetchPPGThunk, fetchMEThunk, fetchCEMEThunk } from '../features/geojson/geojsonSlice';
 
-const Milieuxaquatiques = () => {  
+const Milieuxaquatiques = () => {
     const dispatch = useDispatch();
     const geoJsonMO = useSelector((state) => state.geojson.mo);
     const geoJsonME = useSelector((state) => state.geojson.me);
@@ -21,6 +22,7 @@ const Milieuxaquatiques = () => {
     const [selectedFolderId, setSelectedFolderId] = useState(null);
     const [view, setView] = useState('folders');
     const [highlightedFolderId, setHighlightedFolderId] = useState(null);
+    const [selectedMEId, setSelectedMEId] = useState(null);
 
     const geoJsonData = {
         type: "FeatureCollection",
@@ -35,7 +37,7 @@ const Milieuxaquatiques = () => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-            const decoded = jwtDecode(token); 
+            const decoded = jwtDecode(token);
             setDepartment(decoded.CODE_DEP);
         }
     }, []);
@@ -71,7 +73,7 @@ const Milieuxaquatiques = () => {
     }, [selectedFolderId, folders]);
 
 
-    
+
     const handleFolderClick = (folder) => {
         setSelectedFolderId(folder.id);
         setFiles(folder.files || []);
@@ -86,6 +88,11 @@ const Milieuxaquatiques = () => {
         setCurrentPath('');
         setFolderName('');
         setView('folders');
+    };
+
+    const handleMESelect = (meId) => {
+        setSelectedMEId(meId);
+        console.log('ME sélectionnée ID:', meId); // Vérifiez que l'ID est correctement passé
     };
 
     return (
@@ -116,10 +123,11 @@ const Milieuxaquatiques = () => {
                     highlightedFolderId={highlightedFolderId}
                     setHighlightedFolderId={setHighlightedFolderId}
                     handleFolderClick={handleFolderClick}
+                    handleMESelect={handleMESelect}
                 />
             </div>
-            <div className="info-panel-section">
-                {/* Autres sections ou informations */}
+            <div className="contenu-sous-ref">
+                <ContenuSousRef selectedMEId={selectedMEId} />
             </div>
             <div className="other-section">
                 {/* Autres sections ou informations */}

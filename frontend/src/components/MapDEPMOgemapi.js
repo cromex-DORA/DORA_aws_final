@@ -28,7 +28,6 @@ const MapEvents = ({ setZoomLevel }) => {
         zoomend: (e) => {
             const zoom = e.target.getZoom();
             setZoomLevel(zoom);
-            console.log("niveau zoom:", zoom);
         }
     });
 
@@ -37,8 +36,7 @@ const MapEvents = ({ setZoomLevel }) => {
 
 
 
-const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, highlightedFolderId, setHighlightedFolderId, handleFolderClick }) => {
-    console.log("Highlighted Folder ID in Map:", highlightedFolderId);
+const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, highlightedFolderId, setHighlightedFolderId, handleFolderClick, handleMESelect }) => {
     const [filter, setFilter] = useState('Syndicat');
     const [selectedType, setSelectedType] = useState('ME');
     const [filteredGeoJsonData, setFilteredGeoJsonData] = useState(null);
@@ -69,7 +67,6 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
             // Si la MO sélectionnée existe, récupérer sa liste_CODE_ME
             if (selectedMO) {
                 setListeMEparMOselected(selectedMO.properties.liste_CODE_ME || []);
-                console.log(listeMEparMOselected)
             } else {
                 setListeMEparMOselected([]); // Réinitialise si la MO sélectionnée n'est pas trouvée
             }
@@ -133,10 +130,10 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
         if (geoJsonLayerRefMO.current && filteredGeoJsonData?.MO.length > 0) {
             geoJsonLayerRefMO.current.eachLayer(layer => {
                 const feature = layer.feature;
-    
+
                 // Supprimer les tooltips existants
                 layer.unbindTooltip();
-    
+
                 // Afficher ALIAS uniquement si le zoom est supérieur à un certain niveau
                 if (!selectedFolderIdRef.current && zoomLevel >= 10) { // Par exemple, afficher à partir du niveau 10
                     layer.bindTooltip(labelMO(feature), {
@@ -148,26 +145,25 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
             });
         }
     }, [selectedFolderId, filteredGeoJsonData, zoomLevel]); // Ajout de zoomLevel comme dépendance
-    
+
 
     useEffect(() => {
         if (geoJsonLayerRefME.current && filteredGeoJsonData?.ME.length > 0) {
             geoJsonLayerRefME.current.eachLayer(layer => {
                 const feature = layer.feature;
-    
+
                 // Supprimer les tooltips existants
                 layer.unbindTooltip();
-    
+
                 // Vérifie si la MO sélectionnée contient des coordonnées pour afficher les ME
                 const selectedMO = filteredGeoJsonData.MO.find(mo => mo.id === selectedFolderIdRef.current);
                 const meCoordinatesDict = selectedMO?.properties.dict_CODE_ME_et_coord || {};
-                
+
 
                 if (selectedFolderIdRef.current && listeMEparMOselected.includes(feature.id)) {
                     // Si les coordonnées sont définies pour cette ME, utilise-les pour l'affichage
                     const meCoordinates = meCoordinatesDict[feature.id];
                     const latLng = [parseFloat(meCoordinates[1]), parseFloat(meCoordinates[0])];
-                    console.log(meCoordinates)
                     if (meCoordinates) {
                         // Créer le tooltip avec les coordonnées
                         layer.bindTooltip(labelME(feature), {
@@ -175,7 +171,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
                             direction: "auto",
                             className: "mo-label"
                         });
-    
+
                         // Utiliser setLatLng sur la couche pour définir la position
                         layer.getTooltip().setLatLng(latLng);
                     }
@@ -183,9 +179,9 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
             });
         }
     }, [selectedFolderIdRef.current, filteredGeoJsonData, listeMEparMOselected]);
-    
-    
-    
+
+
+
 
     // labelMO and labelME functions
     const labelMO = (feature) => {
@@ -199,7 +195,6 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
 
     const onEachFeatureMO = (feature, layer) => {
         const listeMEparMOselected = feature.properties.liste_CODE_ME || [];
-        console.log(`Liste des ME pour la MO ${feature.id}:`, listeMEparMOselected);
         layer.on({
             click: () => {
                 if (selectedFolderIdRef.current == null) {
@@ -242,18 +237,16 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
         layer.on({
             click: () => {
                 console.log('Clic détecté sur le ME');
+                console.log("le folder",selectedFolderIdRef.current)
                 if (selectedFolderIdRef.current) {
                     const bounds = layer.getBounds();
                     setSelectedBounds(bounds);
 
                     // Mettre à jour l'état pour le ME sélectionné
-                    setSelectedMEId(feature.id);
-                    setSelectedMEName(feature.properties.NOM_ME);
+                    handleMESelect(feature.id);
                 }
             },
             mouseover: () => {
-                console.log("alloa", selectedFolderIdRef.current)
-
                 if (selectedFolderIdRef.current) {
                     setHighlightedMEId(feature.id); // Met à jour avec l'ID de surlignage ME
                     layer.setStyle(style(feature, true)); // Applique le style de surbrillance
@@ -337,39 +330,39 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
             }
         }
 
-    // Styles pour les ME
-    if (category === 'ME') {
-        if (isAnyMOSelected) {
-            if (listeMEparMOselected.includes(featureId)) {
-                // Les ME dans la liste ont un weight de 4
-                return {
-                    color: 'gray',
-                    fillColor:'gray',
-                    weight: 2,
-                    fillOpacity: 0.1,
-                    interactive: true,
-                };
+        // Styles pour les ME
+        if (category === 'ME') {
+            if (isAnyMOSelected) {
+                if (listeMEparMOselected.includes(featureId)) {
+                    // Les ME dans la liste ont un weight de 4
+                    return {
+                        color: 'gray',
+                        fillColor: 'gray',
+                        weight: 2,
+                        fillOpacity: 0.1,
+                        interactive: true,
+                    };
+                } else {
+                    // Les ME hors de la liste sont blanches avec weight 0.5
+                    return {
+                        color: 'gray',
+                        fillColor: 'white',
+                        weight: 0.5,
+                        fillOpacity: 0.2,
+                        interactive: true,
+                    };
+                }
             } else {
-                // Les ME hors de la liste sont blanches avec weight 0.5
+                // Toutes les ME sont grises avec weight 2 si aucun MO n'est sélectionné
                 return {
                     color: 'gray',
-                    fillColor:'white',
-                    weight: 0.5,
-                    fillOpacity: 0.2,
+                    fillColor: 'transparent',
+                    weight: 1,
+                    fillOpacity: 0.3,
                     interactive: true,
                 };
             }
-        } else {
-            // Toutes les ME sont grises avec weight 2 si aucun MO n'est sélectionné
-            return {
-                color: 'gray',
-                fillColor:'transparent',
-                weight: 1,
-                fillOpacity: 0.3,
-                interactive: true,
-            };
         }
-    }
 
         if (category === 'CE_ME') {
             return {

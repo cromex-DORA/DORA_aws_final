@@ -8,6 +8,7 @@ import geopandas as gpd
 import fsspec
 import tempfile
 import shutil
+from botocore.exceptions import NoCredentialsError
 
 load_dotenv()
 
@@ -154,4 +155,15 @@ def lire_gpkg_sur_s3_avec_gpd(type_bucket,path):
             # Lire le fichier Shapefile localement avec geopandas
             gdf = gpd.read_file(local_shp_path)
     return gdf  
+
+def generer_un_lien_public_sur_s3(bucket_files_common, object_key, expiration=3600):
+    try:
+        response = s3.generate_presigned_url('get_object',
+                                                    Params={'Bucket': bucket_files_common,
+                                                            'Key': object_key},
+                                                    ExpiresIn=expiration)
+    except NoCredentialsError:
+        print("Credentials not available")
+        return None
+    return response
         

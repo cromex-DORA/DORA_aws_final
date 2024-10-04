@@ -266,7 +266,7 @@ def creation_dict_decoupREF(self,dict_CUSTOM_maitre=None):
                     REF_entite = echelle_shp_par_decoupage[10:].split("_")[0]
                     REF_index = echelle_shp_par_decoupage[10:].split("_")[1]
                     if shp_decoupREF.type_de_geom=="polygon":
-                        shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)]                     
+                        shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)]               
 
                         if REF_entite=='ME' and REF_index=='CUSTOM':
                             shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)|(shp_decoupREF.gdf['surface_decoup'+REF_entite]>500000)]
