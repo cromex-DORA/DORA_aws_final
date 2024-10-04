@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchIconsThunk } from '../api/iconSlice';
 
-const ContenuSousRef = () => {
+const ContenuSousRef = ({selectedMEId}) => {
   const dispatch = useDispatch();
   const icons = useSelector((state) => state.icons.icons);
   const loading = useSelector((state) => state.icons.loading);
@@ -18,6 +18,7 @@ const ContenuSousRef = () => {
   return (
     <div>
     <h1>Contenu Sous Ref - Test Icône MIA</h1>
+    <h4>ID de ME sélectionnée: {selectedMEId !== null ? selectedMEId : 'Aucune'}</h4>
     <img src={icons.MIA_PRESS_ASS} alt="MIA Icon" style={{ width: '50px', height: '50px' }} />
     {/* Ajoute d'autres icônes ici selon le dict récupéré */}
     </div>
