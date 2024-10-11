@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button } from 'react-bootstrap';
+import { useDispatch } from 'react-redux';
 import LoadingModal from './LoadingModal';
+import { fetchMOThunk } from '../features/geojson/geojsonSlice';
 
 const ContenuMO = ({
     folders,
@@ -10,7 +11,8 @@ const ContenuMO = ({
     highlightedFolderId,
     setHighlightedFolderId,
     handleFolderClick,
-    selectedFolderId
+    selectedFolderId,
+    setSelectedFolderId
 }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
@@ -18,6 +20,7 @@ const ContenuMO = ({
     const [fileToUpload, setFileToUpload] = useState(null);
     const fileInputRef = useRef(null);
     const [filteredFolders, setFilteredFolders] = useState(folders);
+    const dispatch = useDispatch();
 
 
     useEffect(() => {
@@ -25,7 +28,7 @@ const ContenuMO = ({
             folder.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
         setFilteredFolders(result);
-    }, [folders, selectedFolderId , searchQuery]);
+    }, [folders, selectedFolderId, searchQuery]);
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
@@ -84,6 +87,36 @@ const ContenuMO = ({
         } catch (error) {
             console.error('Échec de la création du fichier:', error);
             setMessage('Erreur lors de la création du fichier.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const deleteMO = async () => {
+        setIsLoading(true);
+        setMessage('');
+
+
+        const formData = new FormData();
+        formData.append('id', selectedFolderId);
+
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch(`${process.env.REACT_APP_IP_SERV}/suppression_MO_GEMAPI`, {
+                method: 'POST',
+                headers: { 'Authorization': token },
+                body: formData,
+            });
+
+
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            await dispatch(fetchMOThunk());
+            setSelectedFolderId(null);
+            setMessage('Le MO a été supprimé avec succès !');
+
+        } catch (error) {
+            console.error('Échec de la suppression du MO:', error);
+            setMessage('Erreur lors de la suppression du MO.');
         } finally {
             setIsLoading(false);
         }
@@ -184,7 +217,7 @@ const ContenuMO = ({
                             </li>
                         ))}
                     </ul>
-                    
+
                     <div style={{ marginTop: '20px' }}>
                         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
                             <button onClick={createtableauviergeMO}>
@@ -193,7 +226,12 @@ const ContenuMO = ({
                             <button onClick={openFileExplorer} style={{ marginLeft: '10px' }}>
                                 Vérifier un tableau
                             </button>
-                            
+                            {/* Nouveau bouton pour supprimer le MO */}
+                            <button onClick={deleteMO} style={{ marginLeft: '10px', color: 'red' }}>
+                                Supprimer le MO
+                            </button>
+
+
                             {/* Modal de chargement réutilisable */}
                             <LoadingModal
                                 isOpen={isLoading}

@@ -123,6 +123,7 @@ const Milieuxaquatiques = () => {
                     setHighlightedFolderId={setHighlightedFolderId}
                     selectedFolderId={selectedFolderId}
                     resetSelectedFolderId={resetSelectedFolderId}
+                    setSelectedFolderId={setSelectedFolderId}
                 />
             </div>
             <div className="map-container">

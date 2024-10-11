@@ -31,3 +31,13 @@
     width: 100%; /* Assure que le bouton prenne toute la largeur */
 }
 
+.small-tooltip {
+    background-color: rgba(255, 255, 255, 0.8); /* Couleur de fond */
+    border: 1px solid rgba(0, 0, 0, 0.5); /* Bordure */
+    border-radius: 4px; /* Coins arrondis */
+    display: flex; /* Utilise flexbox pour centrer le texte */
+    align-items: center; /* Centre le contenu verticalement */
+    justify-content: center; /* Centre le contenu horizontalement */
+    font-size: 12px; /* Taille de la police */
+    white-space: nowrap; /* Évite le retour à la ligne */
+}

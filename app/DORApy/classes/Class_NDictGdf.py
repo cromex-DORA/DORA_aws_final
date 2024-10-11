@@ -155,9 +155,7 @@ class NDictGdf(dict):
     
     def ajouter_gdf_CUSTOM(gdf_CUSTOM):
         return gdf_CUSTOM
-        
 
-    
 def remplissage_dictgdf(self,dict_CUSTOM_maitre=None,dict_dict_info_REF=None,liste_echelle_REF=_default,TYPE_REF=None):
     if liste_echelle_REF is _default:
         liste_echelle_REF = ['MO','PPG','ME','SME','BVG','SAGE']

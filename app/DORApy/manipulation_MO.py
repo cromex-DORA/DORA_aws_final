@@ -60,12 +60,30 @@ def ajout_shp_MO_gemapi_BDD_DORA(nom_mo,alias,code_siren,geometry):
     dict_geom_REF['gdf_MO'].df_info = pd.concat([dict_geom_REF['gdf_MO'].df_info,df_info_couche_REF])
     Class_NDictGdf.NDictGdf.actualisation_df_info(dict_geom_REF,type_REF_maj)
 
-    Class_NDictGdf.NDictGdf.back_up_shp(dict_geom_REF,type_REF_maj)
+    #Class_NDictGdf.NDictGdf.back_up_shp(dict_geom_REF,type_REF_maj)
     dict_geom_REF['gdf_MO'].gdf = pd.concat([dict_geom_REF['gdf_MO'].gdf,couche_REF])
     Class_NDictGdf.NDictGdf.actualisation_shp(dict_geom_REF,type_REF_maj)
 
-    print("c'est good !", file=sys.stderr)
-    pass
+
+def suppression_shp_MO_gemapi_BDD_DORA(CODE_MO):
+    type_REF_maj = "MO"
+    dict_dict_info_REF = DictDfInfoShp({})
+    dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()
+
+    dict_geom_REF = Class_NDictGdf.NDictGdf({})
+    dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=[type_REF_maj])
+    print("coucou")
+    print(CODE_MO)
+    dict_geom_REF['gdf_MO'].df_info = dict_geom_REF['gdf_MO'].df_info.loc[dict_geom_REF['gdf_MO'].df_info["CODE_MO"]!=CODE_MO]
+    dict_geom_REF['gdf_MO'].df_info['CODE_DEP'] = dict_geom_REF['gdf_MO'].df_info['CODE_DEP'].apply(lambda x:",".join(x))
+
+    Class_NDictGdf.NDictGdf.actualisation_df_info(dict_geom_REF,type_REF_maj)
+
+    dict_geom_REF['gdf_MO'].gdf = dict_geom_REF['gdf_MO'].gdf.loc[dict_geom_REF['gdf_MO'].gdf["CODE_MO"]!=CODE_MO]
+
+    Class_NDictGdf.NDictGdf.actualisation_shp(dict_geom_REF,type_REF_maj)
+
+
 
 
 

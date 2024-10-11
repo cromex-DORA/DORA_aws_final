@@ -9,7 +9,9 @@ import './MapDEPMOgemapi.css';
 import { Button } from 'react-bootstrap';
 import { useMapEvents } from 'react-leaflet';
 import { useDispatch } from 'react-redux';
+import { fetchMOThunk } from '../features/geojson/geojsonSlice';
 
+const DEFAULT_LABEL_SIZE = 12;
 
 // Composant pour ajuster la vue de la carte en fonction des limites
 const ZoomToBounds = ({ bounds }) => {
@@ -39,7 +41,6 @@ const MapEvents = ({ setZoomLevel }) => {
 
 
 const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, highlightedFolderId, setHighlightedFolderId, handleFolderClick, handleMESelect }) => {
-    console.log("highlightedFolderId:", highlightedFolderId);
     const [filter, setFilter] = useState('Syndicat');
     const [selectedType, setSelectedType] = useState('ME');
     const [filteredGeoJsonData, setFilteredGeoJsonData] = useState(null);
@@ -47,8 +48,6 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
     const [selectedBounds, setSelectedBounds] = useState(null);
     const [zoomLevel, setZoomLevel] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [SelectedMEId, setSelectedMEId] = useState(null);
-    const [SelectedMEName, setSelectedMEName] = useState(null);
     const [highlightedMEId, setHighlightedMEId] = useState(null);
     const mapRef = useRef();
     const geoJsonLayerRefME = useRef();  // Référence pour ME
@@ -59,34 +58,50 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
     const selectedFolderIdRef = useRef(selectedFolderId);
     const [listeMEparMOselected, setListeMEparMOselected] = useState([]);
     const dispatch = useDispatch();
+    const [labelSize, setLabelSize] = useState(DEFAULT_LABEL_SIZE);
+
+    const handleFetchMO = () => {
+        dispatch(fetchMOThunk()); // Dispatch l'action pour récupérer les données MO
+    };
+
+    useEffect(() => {
+        if (geoJsonData) {
+            const separatedData = {
+                MO: geoJsonData.features.filter(feature => feature.properties['type_REF'] === 'MO')
+
+            };
+            console.log('Données séparées:', separatedData); // Vérification ici
+            setFilteredGeoJsonData(separatedData);
+        }
+    }, [geoJsonData]);
 
 
     useEffect(() => {
         selectedFolderIdRef.current = selectedFolderId; // Mets à jour la référence à chaque changement
         console.log("après le click :", selectedFolderIdRef.current);
-    
+
         if (selectedFolderId) {
             const selectedMO = filteredGeoJsonData?.MO.find(mo => mo.id === selectedFolderId);
-    
+
             if (selectedMO) {
                 // Accéder aux coordonnées pour un MultiPolygon
                 const coordinates = selectedMO.geometry.coordinates[0][0]; // Récupérer le premier polygone
                 console.log("Coordinates:", coordinates); // Ajoute ce log pour vérifier les coordonnées
-    
+
                 // Vérifie que les coordonnées sont bien définies
                 const latLngs = coordinates.map(coord => {
                     const lat = coord[1];
                     const lon = coord[0];
-                    
+
                     // Vérifie que lat et lon ne sont pas NaN
                     if (isNaN(lat) || isNaN(lon)) {
                         console.error("Invalid coordinates:", coord);
                         return null; // Retourne null si les coordonnées sont invalides
                     }
-    
+
                     return L.latLng(lat, lon);
                 }).filter(Boolean); // Filtrer les valeurs null
-    
+
                 // Vérifie qu'il y a des coordonnées valides
                 if (latLngs.length > 0) {
                     const bounds = L.latLngBounds(latLngs);
@@ -102,8 +117,8 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
             setListeMEparMOselected([]); // Réinitialise si aucun dossier n'est sélectionné
         }
     }, [selectedFolderId, filteredGeoJsonData]);
-    
-    
+
+
 
 
 
@@ -188,17 +203,18 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
                 const selectedMO = filteredGeoJsonData.MO.find(mo => mo.id === selectedFolderIdRef.current);
                 const meCoordinatesDict = selectedMO?.properties.dict_CODE_ME_et_coord || {};
 
-
                 if (selectedFolderIdRef.current && listeMEparMOselected.includes(feature.id)) {
                     // Si les coordonnées sont définies pour cette ME, utilise-les pour l'affichage
                     const meCoordinates = meCoordinatesDict[feature.id];
                     const latLng = [parseFloat(meCoordinates[1]), parseFloat(meCoordinates[0])];
+
                     if (meCoordinates) {
                         // Créer le tooltip avec les coordonnées
                         layer.bindTooltip(labelME(feature), {
                             permanent: true,
-                            direction: "auto",
-                            className: "mo-label"
+                            direction: "center", // Ou "center" pour centrer
+                            className: "small-tooltip",
+                            offset: [0, 0] // Pas de décalage
                         });
 
                         // Utiliser setLatLng sur la couche pour définir la position
@@ -208,6 +224,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
             });
         }
     }, [selectedFolderIdRef.current, filteredGeoJsonData, listeMEparMOselected]);
+
 
     // labelMO and labelME functions
     const labelMO = (feature) => {
@@ -313,7 +330,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
 
         if (isMEHighlighted) {
             return {
-                color: 'blue', // Couleur pour ME surligné
+                color: 'yellow', // Couleur pour ME surligné
                 weight: 1,
                 fillOpacity: 0.6,
             };
@@ -348,9 +365,9 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
                 if (listeMEparMOselected.includes(featureId)) {
                     // Les ME dans la liste ont un weight de 4
                     return {
-                        color: 'gray',
-                        fillColor: 'gray',
-                        weight: 2,
+                        color: 'white',
+                        fillColor: 'transparent',
+                        weight: 4,
                         fillOpacity: 0.1,
                         interactive: true,
                     };
@@ -360,7 +377,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
                         color: 'gray',
                         fillColor: 'white',
                         weight: 0.5,
-                        fillOpacity: 0.2,
+                        fillOpacity: 0.0,
                         interactive: true,
                     };
                 }
@@ -411,6 +428,9 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
                     onRequestClose={closeModal}
                     initialBounds={initialBounds}
                 />
+                <Button className="fetch-button" onClick={handleFetchMO}>
+                    Fetch MO
+                </Button> {/* Ajout du bouton Fetch MO */}
             </div>
             {/* Autres éléments de ton composant ici */}
             <MapContainer
@@ -418,6 +438,11 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
                 className="map"
                 whenCreated={map => { mapRef.current = map; }}
             >
+                <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    opacity={0.3} // Ajuster l'opacité ici
+                />
                 {/* Rendu des polygones par type */}
 
                 {/* Render MO GeoJSON */}

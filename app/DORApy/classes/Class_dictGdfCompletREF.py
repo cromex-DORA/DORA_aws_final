@@ -104,11 +104,11 @@ class dictGdfCompletREF(dict):
             dict_NOM_PPG_CODE_PPG_df_info_PPG = dict(zip(df_info_PPG['NOM_PPG'].to_list(),[int(x.split("_")[1]) for x in df_info_PPG['CODE_PPG'].to_list()]))
             dict_tempo_NOM_CODE = {}
             for NOM_PPG in NOM_REF_a_attribuer:
-                for i in range(200,99999):
-                    if i not in list(dict_NOM_PPG_CODE_PPG_df_info_PPG.values()):
-                        dict_tempo_NOM_CODE[NOM_PPG] = "PPG_" + str(i)
-                        dict_NOM_PPG_CODE_PPG_df_info_PPG[NOM_PPG] = i
-                        break
+                valeur_max_i = max(list(dict_NOM_PPG_CODE_PPG_df_info_PPG.values()))
+                valeur_max_i = valeur_max_i+1
+                dict_tempo_NOM_CODE[NOM_PPG] = "PPG_" + str(valeur_max_i)
+                dict_NOM_PPG_CODE_PPG_df_info_PPG[NOM_PPG] = valeur_max_i
+                break
             couche_REF['CODE_PPG'] = couche_REF.apply(lambda x: dict_tempo_NOM_CODE[x['NOM_init']] if x['NOM_init'] in dict_tempo_NOM_CODE else x['CODE_PPG'],axis=1)
             return couche_REF        
 
@@ -118,11 +118,11 @@ class dictGdfCompletREF(dict):
             dict_NOM_MO_CODE_MO_df_info_MO = dict(zip(df_info_MO['NOM_init'].to_list(),[int(x.split("_")[2]) for x in df_info_MO['CODE_MO'].to_list()]))
             dict_tempo_NOM_CODE = {}
             for NOM_MO in NOM_REF_a_attribuer:
-                for i in range(10000,99999):
-                    if i not in list(dict_NOM_MO_CODE_MO_df_info_MO.values()):
-                        dict_tempo_NOM_CODE[NOM_MO] = "MO_gemapi_" + str(i)
-                        dict_NOM_MO_CODE_MO_df_info_MO[NOM_MO] = i
-                        break
+                valeur_max_i = max(list(dict_NOM_MO_CODE_MO_df_info_MO.values()))
+                valeur_max_i = valeur_max_i + 1
+                dict_tempo_NOM_CODE[NOM_MO] = "MO_gemapi_" + str(valeur_max_i)
+                dict_NOM_MO_CODE_MO_df_info_MO[NOM_MO] = valeur_max_i
+                break
             couche_REF['CODE_MO'] = couche_REF.apply(lambda x: dict_tempo_NOM_CODE[x['NOM_init']] if x['NOM_init'] in dict_tempo_NOM_CODE else x['CODE_MO'],axis=1)
             return couche_REF
 
