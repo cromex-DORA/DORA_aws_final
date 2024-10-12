@@ -72,8 +72,7 @@ def suppression_shp_MO_gemapi_BDD_DORA(CODE_MO):
 
     dict_geom_REF = Class_NDictGdf.NDictGdf({})
     dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre=None,dict_dict_info_REF=dict_dict_info_REF,liste_echelle_REF=[type_REF_maj])
-    print("coucou")
-    print(CODE_MO)
+
     dict_geom_REF['gdf_MO'].df_info = dict_geom_REF['gdf_MO'].df_info.loc[dict_geom_REF['gdf_MO'].df_info["CODE_MO"]!=CODE_MO]
     dict_geom_REF['gdf_MO'].df_info['CODE_DEP'] = dict_geom_REF['gdf_MO'].df_info['CODE_DEP'].apply(lambda x:",".join(x))
 

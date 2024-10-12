@@ -2,7 +2,7 @@
 import warnings
 from shapely.errors import ShapelyDeprecationWarning
 from app.DORApy.classes.modules import connect_path
-from api import dict_geom_REF,dict_dict_info_REF
+from api import dict_geom_REF
 import pandas as pd
 import time
 start_time = time.time()

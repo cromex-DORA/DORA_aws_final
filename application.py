@@ -12,6 +12,7 @@ from app.DORApy.classes.Class_NGdfREF import NGdfREF
 from api import api_bp
 from app.blueprints.MilieuxAqua import MilieuxAqua_bp
 from app.blueprints.Carto import Carto_bp
+from app.blueprints.Icone import Icone_bp
 
 import jwt
 import datetime
@@ -22,6 +23,7 @@ app = Flask(__name__, static_folder='frontend/build')
 CORS(app, resources={r"/*": {"origins": "*"}})  # Remplacez '*' par les domaines spécifiques si possible
 app.register_blueprint(api_bp)
 app.register_blueprint(Carto_bp)
+app.register_blueprint(Icone_bp)
 app.register_blueprint(MilieuxAqua_bp)
 SECRET_JKEY = os.getenv('SECRET_JKEY')
 

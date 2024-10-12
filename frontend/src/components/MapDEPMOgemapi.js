@@ -330,7 +330,8 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
 
         if (isMEHighlighted) {
             return {
-                color: 'yellow', // Couleur pour ME surligné
+                color: 'yellow',
+                fillColor: 'yellow', // Couleur pour ME surligné
                 weight: 1,
                 fillOpacity: 0.6,
             };

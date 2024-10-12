@@ -57,7 +57,7 @@ if  os.getenv('ENVIRONMENT')!="test":
 def get_MO_geojson():
     global dict_geom_REF,dict_relation_shp_liste,dict_dict_info_REF
 
-    dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()
+    
     token = request.headers.get('Authorization')
     if not token:
         return jsonify({'message': 'Token is missing'}), 403
@@ -68,12 +68,13 @@ def get_MO_geojson():
         return jsonify({'message': 'Token has expired'}), 403
     except jwt.InvalidTokenError:
         return jsonify({'message': 'Invalid token'}), 403
-
+    
+    dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp(['MO'])
     if "gdf_MO" in dict_geom_REF:
         del dict_geom_REF["gdf_MO"]
 
     dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF, dict_CUSTOM_maitre=None, dict_dict_info_REF=dict_dict_info_REF, liste_echelle_REF=["MO"])
-    print(dict_geom_REF['gdf_MO'].gdf["CODE_MO"].to_list())
+
     dict_decoupREF = Class_NDictGdf.creation_dict_decoupREF(dict_geom_REF, dict_CUSTOM_maitre)
 
     # Relation géographiques entre référentiels

@@ -32,12 +32,11 @@
 }
 
 .small-tooltip {
-    background-color: rgba(255, 255, 255, 0.8); /* Couleur de fond */
-    border: 1px solid rgba(0, 0, 0, 0.5); /* Bordure */
-    border-radius: 4px; /* Coins arrondis */
-    display: flex; /* Utilise flexbox pour centrer le texte */
-    align-items: center; /* Centre le contenu verticalement */
-    justify-content: center; /* Centre le contenu horizontalement */
-    font-size: 12px; /* Taille de la police */
-    white-space: nowrap; /* Évite le retour à la ligne */
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    display: grid; /* Utilise grid pour une mise en page plus contrôlée */
+    place-items: center; /* Centre le contenu horizontalement et verticalement */
+    font-size: 12px;
+    overflow: hidden; /* Masque le contenu qui dépasse */
 }

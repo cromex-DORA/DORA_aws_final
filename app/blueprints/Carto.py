@@ -4,12 +4,8 @@ from flask_cors import CORS
 from app.DORApy import check_tableau_DORA, creation_carte,manipulation_MO
 from app.DORApy import gestion_admin,creation_tableau_vierge_DORA,creation_carte,check_tableau_DORA
 
-
-from api import api_bp
 import jwt
-import datetime
 import sys
-import tempfile
 
 Carto_bp = Blueprint('Carto', __name__)
 SECRET_JKEY = os.getenv('SECRET_JKEY')

@@ -1273,7 +1273,7 @@ class DictCustomMaitre(dict):
     def export_log_df_erreur(self):
         for entite_CUSTOM,contenu_CUSTOM in self.items():
             print("attention, il y a plusieurs logs")
-            path = os.path.join(self.folder_path,"log_"+contenu_CUSTOM.NOM_CUSTOM)
+            path = os.path.join(self.folder_path,"log_"+contenu_CUSTOM.NOM_CUSTOM+".csv")
             connect_path.upload_file_vers_s3("CUSTOM",contenu_CUSTOM.df_log_erreur,path)
             
         return contenu_CUSTOM.df_log_erreur
@@ -1314,8 +1314,8 @@ class DictCustomMaitre(dict):
             )
 
             # Sauvegarder le fichier Excel modifié
-            #chemin_sauvegarde = f"/mnt/h/Tableau_final_{contenu_CUSTOM.NOM_CUSTOM}.xlsx"
-            #wb.save(chemin_sauvegarde)
+            chemin_sauvegarde = f"/mnt/e/carto/{contenu_CUSTOM.NOM_CUSTOM}.xlsx"
+            wb.save(chemin_sauvegarde)
 
         return "Exportation terminée"
 

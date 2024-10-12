@@ -42,7 +42,7 @@ class DictDfInfoShp(dict):
         df_info_MO["CODE_SIRET"] = df_info_MO["CODE_SIRET"].apply(lambda x:x.split(".")[0])
 
         self['df_info_MO'] = DfInfoShp(df_info_MO)
-        self['df_info_MO'].set_attributs_df_info_shp('MO',"NOM_MO")   
+        self['df_info_MO'].set_attributs_df_info_shp('MO',"NOM_MO")
         self['df_info_MO'].ajout_dict_CODE_NOM_et_dict_NOM_CODE()
         self['df_info_MO'].dict_CODE_MO_list_CODE_DEP = dict(zip(df_info_MO['CODE_MO'].to_list(),df_info_MO['CODE_DEP']))
         return self
@@ -79,8 +79,11 @@ class DictDfInfoShp(dict):
         self['df_info_ME']['OBJ_ECO'] = self['df_info_ME']['OBJ_ECO'].astype(str)
         self['df_info_ME'].loc[self['df_info_ME']['OBJ_ECO']=="2","OBJ_ETAT_ECO"] = "Bon état " + self['df_info_ME']['DATE_ECO'].astype(str)
         self['df_info_ME'].loc[self['df_info_ME']['OBJ_ECO']=="M","OBJ_ETAT_ECO"] = "Bon potentiel " + self['df_info_ME']['DATE_ECO'].astype(str)
+        df_pression_ME_AG = dataframe.import_pression()
+        self['df_info_ME'] = pd.merge(self['df_info_ME'],df_pression_ME_AG,on="CODE_ME")
         self['df_info_ME'].set_attributs_df_info_shp('ME',"NOM_ME")
-        self['df_info_ME'].ajout_dict_CODE_NOM_et_dict_NOM_CODE()        
+        self['df_info_ME'].ajout_dict_CODE_NOM_et_dict_NOM_CODE()
+        
         return self
     
     def import_info_BVG(self):

@@ -103,7 +103,6 @@ def upload_complete_MO_gemapi():
 
 @MilieuxAqua_bp.route('/verif_tableau_DORA', methods=['POST'])
 def verif_tableau_DORA():
-    print("allo", file=sys.stderr)
     token = request.headers.get('Authorization')
     if not token:
         return jsonify({'message': 'Token is missing'}), 403
@@ -116,12 +115,14 @@ def verif_tableau_DORA():
         return jsonify({'message': 'Invalid token'}), 403 
 
 
-    file = request.form.get('file')
+    file = request.files.get('file')
     NOM_MO = request.form.get('NOM_MO')
     CODE_MO = request.form.get('CODE_MO')
-    file_name = file.filename
+    print("nom du fichier")
+    print(file, file=sys.stderr)
+    file_name = "fichier_rempli_"+NOM_MO+".xlsx"
     connect_path.upload_file_vers_s3("CUSTOM",file,os.path.join("MO_gemapi",CODE_MO,file_name))
-    #check_tableau_DORA.verification_tableau_vierge_DORA([NOM_MO])
+    check_tableau_DORA.verification_tableau_vierge_DORA([CODE_MO])
     return jsonify({'message': 'Error processing files'}), 500
 
 @MilieuxAqua_bp.route('/suppression_MO_GEMAPI', methods=['POST'])

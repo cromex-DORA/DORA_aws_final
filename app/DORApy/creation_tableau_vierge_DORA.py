@@ -29,7 +29,6 @@ def create_tableau_vierge_DORA(LISTE_CODE_CUSTOM,TYPE_REF=None):
     dict_geom_REF = Class_NDictGdf.NDictGdf({})
     dict_geom_REF = Class_NDictGdf.remplissage_dictgdf(dict_geom_REF,dict_CUSTOM_maitre,dict_dict_info_REF,TYPE_REF)
 
-
     dict_CUSTOM_maitre = DictCustomMaitre.creation_entite_CUSTOM(dict_CUSTOM_maitre,dict_dict_info_REF,dict_geom_REF,LISTE_CODE_CUSTOM,TYPE_REF)
     dict_CUSTOM_maitre = DictCustomMaitre.creation_gdf_CUSTOM(dict_CUSTOM_maitre)
     dict_CUSTOM_maitre = DictCustomMaitre.ajout_df_info_CUSTOM(dict_CUSTOM_maitre)
