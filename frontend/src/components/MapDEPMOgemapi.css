@@ -40,3 +40,10 @@
     font-size: 12px;
     overflow: hidden; /* Masque le contenu qui dépasse */
 }
+
+.custom-icon {
+    width: 100px; /* largeur du marker */
+    height: 100px; /* hauteur du marker */
+    background-size: contain;
+    background-repeat: no-repeat;
+  }

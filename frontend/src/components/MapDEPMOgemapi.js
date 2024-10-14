@@ -64,13 +64,13 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
         dispatch(fetchMOThunk()); // Dispatch l'action pour récupérer les données MO
     };
 
+
     useEffect(() => {
         if (geoJsonData) {
             const separatedData = {
                 MO: geoJsonData.features.filter(feature => feature.properties['type_REF'] === 'MO')
 
             };
-            console.log('Données séparées:', separatedData); // Vérification ici
             setFilteredGeoJsonData(separatedData);
         }
     }, [geoJsonData]);
@@ -78,7 +78,6 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
 
     useEffect(() => {
         selectedFolderIdRef.current = selectedFolderId; // Mets à jour la référence à chaque changement
-        console.log("après le click :", selectedFolderIdRef.current);
 
         if (selectedFolderId) {
             const selectedMO = filteredGeoJsonData?.MO.find(mo => mo.id === selectedFolderId);
