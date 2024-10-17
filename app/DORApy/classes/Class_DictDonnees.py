@@ -106,7 +106,7 @@ class DictDonnees(dict):
                     self[nom_donnees] = DictDFTableauxActionsMIA.mise_en_forme_CODE_REF(self[nom_donnees])
                     
 
-        if dict_CUSTOM_maitre.type_rendu == "tableau_DORA_vers_BDD" and dict_CUSTOM_maitre.type_donnees == "action" and dict_CUSTOM_maitre.thematique == "MIA":
+        if dict_CUSTOM_maitre.type_rendu == "tableau_BDD_vers_Osmose" and dict_CUSTOM_maitre.type_donnees == "action" and dict_CUSTOM_maitre.thematique == "MIA":
             for nom_donnees,contenu_donnees in self.items():
                 if nom_donnees == 'dict_dict_df_actions_originaux':
                     contenu_donnees = DictDFTableauxActionsMIA.actualisation_CODE_ME(contenu_donnees,dict_relation_shp_liste)
@@ -176,6 +176,14 @@ class DictDonnees(dict):
                 if nom_donnees == 'dict_tableau_MAJ_osmose_par_dep':
                     contenu_donnees = DictDFTableauxActionsMIA.mise_en_forme_tableau_actions_maj_osmose(contenu_donnees,dict_dict_info_REF,dict_relation_shp_liste,dict_CUSTOM_maitre)
                       
+        return self
+    
+    def conversion_en_SQL(self,dict_CUSTOM_maitre):
+        if (dict_CUSTOM_maitre.type_rendu == "carte" or dict_CUSTOM_maitre.type_rendu == "tableau_DORA_vers_BDD") and dict_CUSTOM_maitre.type_donnees == "action" and dict_CUSTOM_maitre.thematique == "MIA":
+                    for nom_donnees,contenu_donnees in self.items():
+                        if nom_donnees == 'dict_dict_df_actions_originaux':
+                            contenu_donnees = DictDFTableauxActionsMIA.conversion_type_col_SQL(contenu_donnees)
+      
         return self
     
 

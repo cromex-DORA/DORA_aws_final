@@ -184,6 +184,50 @@ def import_dict_config_col_BDD_DORA_vierge():
     
     return dict_config_col_BDD_DORA_vierge
 
+def ajout_dict_config_col_BDD_DORA_SQL(dict_config_col_BDD_DORA_vierge):
+    dict_config_col_BDD_DORA_vierge['type_col']['ID_DORA'] = 'SERIAL PRIMARY KEY'
+    dict_config_col_BDD_DORA_vierge['type_col']['proposition_DORA'] = 'bool'
+    dict_config_col_BDD_DORA_vierge['type_col_SQL'] = {}
+    dict_config_col_BDD_DORA_vierge['type_col_SQL']['ID_DORA'] = 'SERIAL PRIMARY KEY'
+    for nom_col,type_col in dict_config_col_BDD_DORA_vierge['type_col'].items():
+        if type_col=="str":
+            dict_config_col_BDD_DORA_vierge['type_col_SQL'][nom_col] = 'VARCHAR(255)'
+        if type_col=="list":
+            dict_config_col_BDD_DORA_vierge['type_col_SQL'][nom_col] = 'TEXT[]'
+        if type_col=="Int64":
+            dict_config_col_BDD_DORA_vierge['type_col_SQL'][nom_col] = 'INTEGER'
+        if type_col=="bool":
+            dict_config_col_BDD_DORA_vierge['type_col_SQL'][nom_col] = 'BOOLEAN'
+    return dict_config_col_BDD_DORA_vierge
+
+def conversion_col_df_type_SQL(self,dict_config_col_BDD_DORA_vierge):
+    dict_type_col = dict_config_col_BDD_DORA_vierge['type_col']
+    for col in list(self):
+        if dict_type_col[col]=="str":
+            pass        
+        '''if dict_type_col[col]=="list":
+            self[col] = self[col].apply(lambda x: ','.join(x))'''
+        if dict_type_col[col]=="Int64":
+            self.loc[self[col]=='nan',col] = "-1"
+            self[col] = self[col].astype(int)  
+        if dict_type_col[col]=="SERIAL PRIMARY KEY":
+            pass
+    self.columns = self.columns.str.lower()
+    return self
+
+#####################################################################################################
+#SQL
+#####################################################################################################
+def generate_create_table_query(table_name, column_types):
+    columns = []
+    for column_name, column_type in column_types.items():
+        columns.append(f"{column_name} {column_type}")
+    
+    columns_str = ", ".join(columns)
+    create_table_query = f"CREATE TABLE {table_name} ({columns_str});"
+    return create_table_query
+
+
 #####################################################################################################
 #Continuité
 #####################################################################################################

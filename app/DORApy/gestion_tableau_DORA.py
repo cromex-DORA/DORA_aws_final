@@ -10,7 +10,8 @@ from app.DORApy.classes.Class_DfTableauxActionsMIA import DfTableauxActionsMIA
 from app.DORApy.classes.Class_dictGdfCompletREF import dictGdfCompletREF
 from app.DORApy.classes.Class_DictDfInfoShp import DictDfInfoShp
 from app.DORApy.classes import Class_NDictGdf
-import sys
+
+import joblib
 
 def initialisation_CODE_DORA(dict_CUSTOM_maitre,LISTE_CODE_CUSTOM,TYPE_REF=None):
     dict_dict_info_REF = DictDfInfoShp({})
@@ -103,6 +104,10 @@ def upload_tableau_final_vers_DORA(LISTE_CODE_CUSTOM,TYPE_REF=None):
     dict_df_donnees = DictDonnees.recuperation_donnees_pour_projet(dict_CUSTOM_maitre,dict_dict_info_REF)
     dict_df_donnees = DictDonnees.traitement_donnees(dict_df_donnees,dict_CUSTOM_maitre,dict_dict_info_REF,dict_relation_shp_liste)
 
+    joblib.dump(dict_df_donnees, 'dict_df_donnees.joblib')
+    dict_df_donnees = joblib.load('dict_df_donnees.joblib')
+    (dict_df_donnees['dict_dict_df_actions_originaux']['SYNDICAT MIXTE DU BASSIN VERSANT DU RUISSEAU DU GUA'].df.dtypes)
+    dict_df_donnees = DictDonnees.conversion_en_SQL(dict_df_donnees,dict_CUSTOM_maitre)
     #####################################################################
     #export du tableau perso
     #####################################################################

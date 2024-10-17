@@ -1,6 +1,6 @@
 import pandas as pd
 import geopandas as gpd
-from app.DORApy.classes.modules import dataframe,connect_path
+from app.DORApy.classes.modules import dataframe,connect_path,connect_psql
 import os.path
 from os import path
 import io
@@ -324,57 +324,68 @@ class DfTableauxActionsMIA:
         dict_config_col_BDD_DORA_vierge = config_DORA.import_dict_config_col_BDD_DORA_vierge()
         dict_type_col = dict_config_col_BDD_DORA_vierge['type_col']
         list_col_CODE = dataframe.extraction_liste_col_CODE(df,dict_dict_info_REF)
-        #On considère qu'il y a toujours un seul maitre d'ouvrage
         list_col_CODE = [x for x in list_col_CODE if x not in ["CODE_ROE"]]
+
+        #D'abord, on change les valeurs à partir des éventuels noms mis manuellement par le MO
+        #Exemple : Si un MO est différent
+        for type_CODE_REF in list_col_CODE:
+            echelle_REF = type_CODE_REF.split('_')[-1]
+            if echelle_REF=='MO':
+                if dict_type_col['CODE_'+echelle_REF]=="list":
+                    if 'NOM_'+ echelle_REF in list(df):
+                        df.loc[df['NOM_MO']==df['NOM_MO'],'CODE_MO'] = df['NOM_MO'].map(dict_dict_info_REF['df_info_MO'].dict_NOM_CODE)
+                        df['CODE_'+echelle_REF] = df['CODE_'+echelle_REF].fillna('CODE_MO_inconnu')
+                        df['CODE_'+echelle_REF] = df['CODE_'+echelle_REF].apply(lambda x:[x])
+            if echelle_REF=='PPG':
+                if dict_type_col['CODE_'+echelle_REF]=="list":
+                    if 'NOM_'+ echelle_REF in list(df):
+                        df.loc[df['NOM_PPG']==df['NOM_PPG'],'CODE_PPG'] = df['NOM_PPG'].map(dict_dict_info_REF['df_info_PPG'].dict_NOM_CODE)                
+                        df['CODE_'+echelle_REF] = df['CODE_'+echelle_REF].fillna('HORS_'+echelle_REF)
+                        df['CODE_'+echelle_REF] = df['CODE_'+echelle_REF].apply(lambda x:[x])
+
+        #Ensuite, on change les valeurs à partir de l'échelle principale
         for type_CODE_REF in list_col_CODE:
             echelle_REF = type_CODE_REF.split('_')[-1]
 
             def extraire_list_de_list(df,echelle_REF):
                 echelle_princ_action = df['echelle_princ_action']
                 if dict_type_col['CODE_'+echelle_princ_action]=="list":
-                    list_list_CODE_REF = []
-                    list_CODE_REF_echelle_princip = df['CODE_'+df['echelle_princ_action']]
-                    if echelle_REF!=df['echelle_princ_action']:
-                        for CODE_REF in list_CODE_REF_echelle_princip:
-                            if CODE_REF not in dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action]:
-                                pass
-                                #list_list_CODE_REF = [['Pas de '+echelle_REF]]
-                            if CODE_REF in dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action]:
-                                if dict_type_col['CODE_'+echelle_REF]=="str":
-                                    if CODE_REF in dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action]:
-                                        list_CODE_REF_a_ajouter = dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action][CODE_REF]
-                                    if CODE_REF not in dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action]:
-                                        list_CODE_REF_a_ajouter = 'Pas de '+echelle_REF
-                                if dict_type_col['CODE_'+echelle_REF]=="list":                          
-                                    list_CODE_REF_a_ajouter = dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action][CODE_REF]
-                                #Attention, il faut rajouter un filtre "logique" : Quand une MO nous indique une ME, elle parle de la MO dans son périmètre.
 
-                                list_list_CODE_REF.append(list_CODE_REF_a_ajouter)
-                    if echelle_REF==df['echelle_princ_action']:
+                    if df['CODE_'+echelle_REF]==['HORS_'+echelle_REF] or df['CODE_'+echelle_REF]==['CODE_MO_inconnu']:
+                        list_CODE_REF = ['nan']
+                    elif set(df['CODE_'+echelle_REF]).issubset(list(dict_dict_info_REF['df_info_'+echelle_REF]['CODE_'+echelle_REF])):
+                        list_CODE_REF=df['CODE_'+echelle_REF]
+                    else:
+                        list_list_CODE_REF = []
+                        list_CODE_REF_echelle_princip = df['CODE_'+df['echelle_princ_action']]
+                        if echelle_REF!=df['echelle_princ_action']:
+                            for CODE_REF in list_CODE_REF_echelle_princip:
+                                if CODE_REF not in dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action]:
+                                    pass
+                                    #list_list_CODE_REF = [['Pas de '+echelle_REF]]
+                                if CODE_REF in dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action]:
+                                    if dict_type_col['CODE_'+echelle_REF]=="list":                          
+                                        list_CODE_REF_a_ajouter = dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action][CODE_REF]
+                                    #Attention, il faut rajouter un filtre "logique" : Quand une MO nous indique une ME, elle parle de la MO dans son périmètre.
+
+                                    list_list_CODE_REF.append(list_CODE_REF_a_ajouter)
+                        if echelle_REF==df['echelle_princ_action']:
+                            if dict_type_col['CODE_'+echelle_REF]=="list":
+                                list_list_CODE_REF = [df['CODE_'+df['echelle_princ_action']]]
+                        list_CODE_REF=[x for xs in list_list_CODE_REF for x in xs]
                         if dict_type_col['CODE_'+echelle_REF]=="list":
-                            list_list_CODE_REF = [df['CODE_'+df['echelle_princ_action']]]
-                            
-                        if dict_type_col['CODE_'+echelle_REF]=="str":
-                            list_list_CODE_REF = df['CODE_'+df['echelle_princ_action']]
-                    list_CODE_REF=[x for xs in list_list_CODE_REF for x in xs]
-                    if dict_type_col['CODE_'+echelle_REF]=="list":
-                        list_CODE_REF = list(set(list_CODE_REF))
+                            list_CODE_REF = list(set(list_CODE_REF))
 
-                if dict_type_col['CODE_'+echelle_princ_action]=="str":
-                    CODE_REF = df['CODE_'+df['echelle_princ_action']]
-                    if echelle_REF!=df['echelle_princ_action']:
-                        if CODE_REF in dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action]:
-                            if dict_type_col['CODE_'+echelle_REF]=="str":
-                                if CODE_REF in dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action]:
-                                    list_CODE_REF = dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action][CODE_REF][0]
-                                if CODE_REF not in dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action]:
-                                    list_CODE_REF = ['Pas de '+echelle_REF]
-                            if dict_type_col['CODE_'+echelle_REF]=="list":                          
-                                list_CODE_REF = dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action][CODE_REF]
-                    if echelle_REF==df['echelle_princ_action']:
-                        list_CODE_REF = df['CODE_'+df['echelle_princ_action']]
                 return list_CODE_REF
             df['CODE_'+echelle_REF] = df.apply(lambda x:extraire_list_de_list(x,echelle_REF),axis=1)
+        return df
+
+    def traitement_special_ROE(df):
+        df['CODE_ROE'] = df['CODE_ROE'].apply(lambda x:x.split(","))
+        return df
+
+    def mise_en_forme_filtre_PAOT(df):
+        df['proposition_DORA'] = df['proposition_DORA'].apply(lambda x:False if x=="non" else True)
         return df
 
     def ajout_colonne_manquante_df_type_DORA(df):
@@ -520,6 +531,28 @@ class DfTableauxActionsMIA:
 
         df_BDD = df_BDD.apply(lambda x:tri_echelle_CUSTOM(x),axis=1)
         return df_BDD
+    
+    def attribut_dict_config_col_BDD_DORA_vierge(self):
+        dict_config_col_BDD_DORA_vierge = config_DORA.import_dict_config_col_BDD_DORA_vierge()
+        dict_config_col_BDD_DORA_vierge = config_DORA.ajout_dict_config_col_BDD_DORA_SQL(dict_config_col_BDD_DORA_vierge)  
+        self.dict_config_col_BDD_DORA_vierge = dict_config_col_BDD_DORA_vierge
+        return self
+
+
+    def conv_type_col_SQL(self,dict_config_col_BDD_DORA_vierge):
+        dict_type_col = dict_config_col_BDD_DORA_vierge['type_col']
+
+        self = self[[x for x in list(self) if x in dict_type_col]]
+        self = config_DORA.conversion_col_df_type_SQL(self,dict_config_col_BDD_DORA_vierge)
+
+        # Exemple d'utilisation
+        table_name = 'BDD_DORA_SQL_PAOT'
+        #create_table_query = config_DORA.generate_create_table_query(table_name, dict_config_col_BDD_DORA_vierge['type_col_SQL'])
+        return self
+    
+    def envoi_dans_BDD_SQL_DORA(self,dict_config_col_BDD_DORA_vierge):
+        self = connect_psql.envoi_df_dans_DBB(self,dict_config_col_BDD_DORA_vierge)
+        return self
 
     ##########################################################################################
     #suppression des actions

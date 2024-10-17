@@ -21,6 +21,6 @@ from io import BytesIO
 dict_dict_info_REF = dict_dict_info_REF.creation_DictDfInfoShp()
 
 selectedMEId="FRFR288A"'''
-CODE_MO= ["MO_gemapi_10041"]
+CODE_MO= ["MO_gemapi_10041","MO_gemapi_10005"]
 
 gestion_tableau_DORA.upload_tableau_final_vers_DORA(CODE_MO)

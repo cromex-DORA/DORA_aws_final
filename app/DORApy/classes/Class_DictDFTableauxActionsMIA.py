@@ -215,6 +215,8 @@ class DictDFTableauxActionsMIA(dict):
             dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.definition_col_localisation_principale(dict_dict_df_actions_originaux[nom_tableau].df,echelle_df,echelle_base_REF,dict_type_col)
             dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.gestion_type_col_localisation_principale(dict_dict_df_actions_originaux[nom_tableau].df,dict_dict_info_REF,dict_dict_df_actions_originaux[nom_tableau].CODE_CUSTOM)
             dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.ajout_colonne_CODE_REF_permanent(dict_dict_df_actions_originaux[nom_tableau].df,dict_relation_shp_liste,dict_dict_info_REF,dict_dict_df_actions_originaux[nom_tableau].echelle_df,dict_dict_df_actions_originaux[nom_tableau].CODE_CUSTOM)
+            dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.traitement_special_ROE(dict_dict_df_actions_originaux[nom_tableau].df)
+            dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.mise_en_forme_filtre_PAOT(dict_dict_df_actions_originaux[nom_tableau].df)
             #dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.chgt_CODE_hors_REF_base(dict_dict_df_actions_originaux[nom_tableau].df,echelle_df,dict_type_col,dict_relation_shp_liste)
         return dict_dict_df_actions_originaux
     
@@ -610,6 +612,15 @@ class DictDFTableauxActionsMIA(dict):
             self[nom_tableau].df = DfTableauxActionsMIA.suppression_actions_conti_sans_ROE(self[nom_tableau].df,dict_CUSTOM_maitre)    
         return self
     
+    def conversion_type_col_SQL(self):
+        for nom_tableau,dict_df_actions_originaux in self.items():
+            self[nom_tableau] = DfTableauxActionsMIA.attribut_dict_config_col_BDD_DORA_vierge(self[nom_tableau])
+            self[nom_tableau].df = DfTableauxActionsMIA.conv_type_col_SQL(self[nom_tableau].df,self[nom_tableau].dict_config_col_BDD_DORA_vierge)
+            self[nom_tableau].df = DfTableauxActionsMIA.envoi_dans_BDD_SQL_DORA(self[nom_tableau].df,self[nom_tableau].dict_config_col_BDD_DORA_vierge)
+
+        return self
+
+
     def mise_en_forme_tableau_actions_MIA_renommage_colonne(self,dict_CUSTOM_maitre):
         for nom_tableau,dict_df_actions_originaux in self.items(): 
             if dict_CUSTOM_maitre.type_rendu=='carte' or dict_CUSTOM_maitre.type_rendu=='tableau_DORA_vers_BDD':     
