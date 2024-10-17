@@ -1,8 +1,8 @@
 from flask import Flask, send_from_directory, jsonify, request, Response, Blueprint
 import os
 from flask_cors import CORS
-from app.DORApy import check_tableau_DORA, creation_carte,manipulation_MO
-from app.DORApy import gestion_admin,creation_tableau_vierge_DORA,creation_carte,check_tableau_DORA
+from app.DORApy import gestion_tableau_DORA, creation_carte,manipulation_MO
+from app.DORApy import gestion_admin,gestion_tableau_DORA,creation_carte,gestion_tableau_DORA
 
 import jwt
 import sys

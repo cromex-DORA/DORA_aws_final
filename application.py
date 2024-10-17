@@ -1,10 +1,10 @@
 from flask import Flask, send_from_directory, jsonify, request, Response
 import os
 from flask_cors import CORS
-from app.DORApy import check_tableau_DORA, creation_carte,manipulation_MO
+from app.DORApy import gestion_tableau_DORA, creation_carte,manipulation_MO
 from app.DORApy.security import gestion_db_users,gestion_file_upload
 from app.DORApy.classes.modules import connect_path
-from app.DORApy import gestion_admin,creation_tableau_vierge_DORA,creation_carte,check_tableau_DORA
+from app.DORApy import gestion_admin,gestion_tableau_DORA,creation_carte,gestion_tableau_DORA
 from api import dict_geom_REF,dict_dict_info_REF
 from app.DORApy.classes.Class_NDictGdf import NDictGdf
 from app.DORApy.classes.Class_NGdfREF import NGdfREF

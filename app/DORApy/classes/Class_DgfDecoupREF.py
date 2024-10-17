@@ -23,12 +23,13 @@ def creation_decoupREF(gdf_REF1,gdf_REF2,REF1,REF2,dict_CUSTOM_maitre=None):
     if gdf_REF2.type_de_geom=="lignes":  
         couche_REF2 = gdf_REF2.gdf[['CODE_'+REF2,'NOM_'+REF2,'geometry_'+REF2,'longueur_'+REF2]]  
     if gdf_REF2.type_de_geom=="point":
-        couche_REF2 = gdf_REF2.gdf[['CODE_'+REF2,'NOM_'+REF2,'geometry_'+REF2]]           
+        couche_REF2 = gdf_REF2.gdf[['CODE_'+REF2,'NOM_'+REF2,'geometry_'+REF2]]     
+
     if gdf_REF1.type_de_geom =="polygon" and gdf_REF2.type_de_geom =="polygon":
         dict_mapping_CODE_REF1_surface_REF1 = dict(zip(gdf_REF1.gdf['CODE_'+REF1].to_list(),gdf_REF1.gdf.area.to_list()))
         gdf_decoup = gpd.overlay(couche_REF1,couche_REF2, how='intersection',keep_geom_type=False)
         if len(gdf_decoup)>0:
-            gdf_decoup['surface_' + REF1] = gdf_REF1.gdf['CODE_'+REF1].map(dict_mapping_CODE_REF1_surface_REF1)
+            gdf_decoup['surface_' + REF1] = gdf_decoup['CODE_'+REF1].map(dict_mapping_CODE_REF1_surface_REF1)
             gdf_decoup['surface_decoup' + REF2] = gdf_decoup['geometry'].area
             gdf_decoup['ratio_surf'] = gdf_decoup['surface_decoup' + REF2]/gdf_decoup['surface_' + REF2]
     if gdf_REF1.type_de_geom =="polygon" and gdf_REF2.type_de_geom =="point":

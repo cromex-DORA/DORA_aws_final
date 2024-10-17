@@ -92,14 +92,14 @@ def reduction_nom_colonne_via_fichier_csv(df,type_df):
     df = df.rename(dict_reduction_nom_colonne,axis=1)
     return df
 
-def extraction_liste_col_CODE(df,list_REF_df_info):
+def extraction_liste_col_CODE(df,dict_dict_info_REF):
     list_col_CODE = [x for x in list(df) if x.startswith('CODE')]
-    list_col_CODE = [x for x in list_col_CODE if x.split('CODE_')[-1] in list_REF_df_info]
+    list_col_CODE = [x for x in list_col_CODE if x.split('CODE_')[-1] in [v.echelle_REF for k,v in dict_dict_info_REF.items()]]
     return list_col_CODE
 
-def extraction_liste_col_NOM(df,list_REF_df_info):
+def extraction_liste_col_NOM(df,dict_dict_info_REF):
     list_col_NOM = [x for x in list(df) if x.startswith('NOM')]
-    list_col_NOM = [x for x in list_col_NOM if x.split('NOM_')[-1] in list_REF_df_info]
+    list_col_NOM = [x for x in list_col_NOM if x.split('NOM_')[-1] in dict_dict_info_REF]
     return list_col_NOM
 
 def extraire_string(x,sequence_recherchee):

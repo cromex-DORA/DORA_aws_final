@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import LoadingModal from './LoadingModal';
+import SuccessModal from './SuccessModal';
 import { fetchMOThunk } from '../features/geojson/geojsonSlice';
+import './ContenuMO.css';
+
 
 const ContenuMO = ({
     folders,
@@ -20,7 +23,12 @@ const ContenuMO = ({
     const [fileToUpload, setFileToUpload] = useState(null);
     const fileInputRef = useRef(null);
     const [filteredFolders, setFilteredFolders] = useState(folders);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const fileInputRefRempli = useRef(null); // Pour vérifier un tableau
+    const fileInputRefFinal = useRef(null);
     const dispatch = useDispatch();
+
 
 
     useEffect(() => {
@@ -29,6 +37,12 @@ const ContenuMO = ({
         );
         setFilteredFolders(result);
     }, [folders, selectedFolderId, searchQuery]);
+
+    useEffect(() => {
+        if (selectedFolderId) {
+            dispatch(fetchMOThunk()); // Fetch les fichiers à chaque changement de selectedFolderId
+        }
+    }, [selectedFolderId, dispatch]);
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
@@ -84,6 +98,7 @@ const ContenuMO = ({
 
             console.log('Tableau vierge DORA créé !');
             setMessage('Le fichier a été créé avec succès !');
+            await dispatch(fetchMOThunk()); // Rafraîchir les fichiers après la création
         } catch (error) {
             console.error('Échec de la création du fichier:', error);
             setMessage('Erreur lors de la création du fichier.');
@@ -122,22 +137,24 @@ const ContenuMO = ({
         }
     };
 
-    const handleFileChange = (e) => {
+    const uploadfichierrempliMO = (e) => {
         setFileToUpload(e.target.files[0]);
-        handleFileUpload(e.target.files[0]); // Appel de la fonction d'importation ici
+        uploadtableaurempliMO(e.target.files[0]); // Appel de la fonction d'importation ici
     };
 
-    const handleFileUpload = async (file) => {
+    const uploadtableaurempliMO = async (file) => {
         if (!file) {
             console.error('Aucun fichier sélectionné pour l\'importation.');
             return;
         }
 
+        setIsLoading(true);
+        setMessage('');
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('NOM_MO', folderName);
         formData.append('CODE_MO', selectedFolderId);
-        // Ajoutez d'autres informations nécessaires ici
 
         const token = localStorage.getItem('token');
         try {
@@ -150,15 +167,79 @@ const ContenuMO = ({
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
             console.log('Fichier importé avec succès !');
-            // Gérer la réponse ou rafraîchir les données si nécessaire
+            await dispatch(fetchMOThunk());
+
+            setMessage(
+                <>
+                    <p>Le fichier a été importé avec succès !</p>
+                    <p>Joie !</p>
+                    <p>Les fichiers suivants ont été créés :</p>
+                    <p>Un fichier tableau_rempli avec le fichier original.</p>
+                    <p>Un fichier log avec les erreurs du tableau.</p>
+                    <p>Un fichier tableau_final avec le fichier qui devra être utilisé
+                        pour Osmose et la base de données DORA. En rouge, les
+                        cellules qui sont bloquantes et qui entraineront une
+                        impossibilité d'importer cette ligne.
+                        (Les autres lignes seront quand même importées.). </p>
+                    <p>Une fois que vous êtes satisfait(e) de votre tableau,
+                        vous pouvez l'importer dans DORA avec le bouton "import BDD DORA".</p>
+                    <p>Une fois sur Dora, vous pourrez exporter les actions de ce syndicat
+                        sur Osmose2.</p>
+                </>
+            );
+            setIsSuccessModalOpen(true); // Ouvrir la modal de succès
         } catch (error) {
             console.error('Échec de l\'importation du fichier:', error);
+            setMessage('Erreur lors de l\'importation du fichier.');
+        } finally {
+            setIsLoading(false); // Fermer la modal de chargement
         }
     };
 
-    const openFileExplorer = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click(); // Simule un clic sur l'input de fichier
+    const uploadfichierfinalMO = (e) => {
+        setFileToUpload(e.target.files[0]);
+        uploadtableaufinalMO(e.target.files[0]); // Appel de la fonction d'importation ici
+    };
+
+    const uploadtableaufinalMO = async (file) => {
+        if (!file) {
+            console.error("Aucun fichier sélectionné pour l'importation.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('NOM_MO', folderName);
+        formData.append('CODE_MO', selectedFolderId);
+
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch(`${process.env.REACT_APP_IP_SERV}/upload_tableau_final_vers_DORA`, {
+                method: 'POST',
+                headers: { 'Authorization': token },
+                body: formData,
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+            console.log('Fichier .xlsx importé avec succès !');
+            setMessage('Le fichier .xlsx a été importé avec succès !');
+        } catch (error) {
+            console.error("Échec de l'importation du fichier .xlsx :", error);
+            setMessage("Erreur lors de l'importation du fichier .xlsx.");
+        }
+    };
+
+    const openfileexplorerrempliMO = () => {
+        if (fileInputRefRempli.current) {
+            fileInputRefRempli.current.click(); // Simule un clic sur l'input de fichier
+        }
+    };
+    
+    // Fonction pour ouvrir le file explorer pour le tableau final
+    const openfileexplorerfinalMO = () => {
+        if (fileInputRefFinal.current) {
+            fileInputRefFinal.current.click(); // Simule un clic sur l'input de fichier
         }
     };
 
@@ -218,40 +299,56 @@ const ContenuMO = ({
                         ))}
                     </ul>
 
-                    <div style={{ marginTop: '20px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
-                            <button onClick={createtableauviergeMO}>
-                                Créer tableau vierge MO
-                            </button>
-                            <button onClick={openFileExplorer} style={{ marginLeft: '10px' }}>
-                                Vérifier un tableau
-                            </button>
-                            {/* Nouveau bouton pour supprimer le MO */}
-                            <button onClick={deleteMO} style={{ marginLeft: '10px', color: 'red' }}>
-                                Supprimer le MO
-                            </button>
+    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+        <button onClick={createtableauviergeMO} className="action-button">
+            Créer tableau vierge MO
+        </button>
 
+        {/* Bouton pour Vérifier un tableau */}
+        <button onClick={openfileexplorerrempliMO} className="action-button">
+            Vérifier un tableau
+        </button>
 
-                            {/* Modal de chargement réutilisable */}
-                            <LoadingModal
-                                isOpen={isLoading}
-                                onRequestClose={() => setIsLoading(false)}
-                                message="Création du fichier en cours..."
-                            />
+        {/* Bouton pour Importer tableau vérifié dans DORA */}
+        <button onClick={openfileexplorerfinalMO} className="action-button">
+            Importer tableau vérifié <br /> dans DORA
+        </button>
 
-                            {/* Message de succès ou d'erreur */}
-                            {message && <p>{message}</p>}
-                        </div>
+        <button onClick={deleteMO} className="delete-button">
+            Supprimer le MO
+        </button>
 
-                        {/* Champ d'importation de fichier invisible */}
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            style={{ display: 'none' }} // Cache l'input
-                            onChange={handleFileChange}
-                        />
-                    </div>
-                </div>
+        {/* Modal de chargement */}
+        <LoadingModal
+            isOpen={isLoading}
+            onRequestClose={() => setIsLoading(false)}
+            message="Création du fichier en cours..."
+        />
+
+        {/* Modal de succès */}
+        <SuccessModal
+            isOpen={isSuccessModalOpen}
+            onRequestClose={() => setIsSuccessModalOpen(false)}
+            message={message}
+        />
+    </div>
+
+    {/* Champ d'importation de fichier pour "Vérifier un tableau" */}
+    <input
+        type="file"
+        ref={fileInputRefRempli}
+        style={{ display: 'none' }} // Cache l'input
+        onChange={uploadfichierrempliMO} // Gestion de fichier pour le tableau rempli
+    />
+
+    {/* Champ d'importation de fichier pour "Importer tableau vérifié pour DORA" */}
+    <input
+        type="file"
+        ref={fileInputRefFinal}
+        style={{ display: 'none' }} // Cache l'input
+        onChange={uploadfichierfinalMO} // Gestion de fichier pour le tableau final
+    />
+</div>
             )}
         </div>
     );

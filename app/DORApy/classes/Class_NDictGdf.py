@@ -234,7 +234,7 @@ def creation_dict_decoupREF(self,dict_CUSTOM_maitre=None):
     def regle_tri_dict_decoupREF(self,projet=None):
         def extraire_plus_gros_polygon(multipolygon):
             areas = [i.area for i in multipolygon.geoms]
-            max_area = areas.index(max(areas))    
+            max_area = areas.index(max(areas))
             return multipolygon.geoms[max_area]
 
         for echelle_shp_par_decoupage,shp_decoupREF in self.items():
@@ -243,12 +243,14 @@ def creation_dict_decoupREF(self,dict_CUSTOM_maitre=None):
                 REF_entite = echelle_shp_par_decoupage[10:].split("_")[0]
                 REF_index = echelle_shp_par_decoupage[10:].split("_")[1]
                 #Pour tous projets, Chaque ME ne doit appartenir qu'à un seul BVG
-                if REF_entite=='ME' and REF_index=='BVG':
+                if REF_entite=='BVG' and REF_index=='ME':
                     shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.3)]
                 #Pour tous projets, on considère que presque chaque PPG ne doit appartenir qu'à une seule MO
-                if REF_entite=='PPG' and REF_index=='MO':
-                    shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.8)]                   
-                if REF_entite=='SME' and REF_index!='MO':
+                if REF_entite=='MO' and REF_index=='PPG':
+                    shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.8)]    
+                if REF_entite=='MO' and REF_index=='SAGE':
+                    shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.1)]    
+                if REF_entite=='MO' and REF_index=='SME':
                     if len(shp_decoupREF.gdf)>0:
                     #Highlander ! Il ne doit rester qu'un seul SME par entité
                         shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon','geometry'] = shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon']['geometry'].map(lambda x : extraire_plus_gros_polygon(x))   
@@ -260,18 +262,17 @@ def creation_dict_decoupREF(self,dict_CUSTOM_maitre=None):
             if projet!=None:
                 ###Regles de tri uniques pour chaque projets
                 if (projet.type_rendu=='tableau' or projet.type_rendu=='carte' or projet.type_rendu=='tableau_DORA_vers_BDD') and (projet.type_donnees=='action' or projet.type_donnees=='toutes_pressions'):
-                    #Pour tous projets carto, on ne garde pas les entités qui ont au moins de 5% de la surface dans le final
+                    #Pour tous projets carto, on garde les entités qui ont au moins de 20% de la surface dans le final OU qui représente plus de 5% de la surface dans le final
                     REF_entite = echelle_shp_par_decoupage[10:].split("_")[0]
                     REF_index = echelle_shp_par_decoupage[10:].split("_")[1]
                     if shp_decoupREF.type_de_geom=="polygon":
-                        shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)]               
+                        shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)|(shp_decoupREF.gdf['surface_decoup'+REF_entite]/shp_decoupREF.gdf['surface_'+REF_index]>0.05)]               
 
                         if REF_entite=='ME' and REF_index=='CUSTOM':
                             shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)|(shp_decoupREF.gdf['surface_decoup'+REF_entite]>500000)]
                             shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon','geometry'] = shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon']['geometry'].map(lambda x : extraire_plus_gros_polygon(x))
 
                         if (REF_entite=='ME' or REF_entite=='SME') and REF_index=='CUSTOM':
-                            #Pour les PPG par MO, la ration de surface doit étre de 0.1 (Sauf si une action est bien présente sur le CODE_REF !) et on garde que les plus gros polygon
                             shp_decoupREF.gdf = shp_decoupREF.gdf.loc[(shp_decoupREF.gdf['ratio_surf']>0.2)|(shp_decoupREF.gdf['surface_decoup'+REF_entite]>5000000)]
                             shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon','geometry'] = shp_decoupREF.gdf.loc[shp_decoupREF.gdf.geom_type=='MultiPolygon']['geometry'].map(lambda x : extraire_plus_gros_polygon(x))
                         if REF_entite=='PPG' and REF_index=='CUSTOM':

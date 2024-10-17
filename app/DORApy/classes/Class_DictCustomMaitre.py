@@ -27,6 +27,7 @@ from openpyxl.styles import NamedStyle
 from datetime import date
 import os 
 ENVIRONMENT = os.getenv('ENVIRONMENT')
+
 import time
 start_time = time.time()
 import datetime
@@ -1281,9 +1282,14 @@ class DictCustomMaitre(dict):
     def export_tableau_excel_complet(self, dict_df_donnees):
         for entite_CUSTOM, contenu_CUSTOM in self.items():
             fichier_excel = dict_df_donnees["dict_dict_df_actions_originaux"][contenu_CUSTOM.NOM_CUSTOM].fichier_brut
+            wb = load_workbook(fichier_excel)
+            
+            #On doit d'abbord créer un fichier "tableau_final" à partir du fichier brut. Puis c'est ce fichier qu'on va modifier avec le fichier issu de Python
+            path = os.path.join(self.folder_path,"tableau_proposition_"+contenu_CUSTOM.NOM_CUSTOM+".xlsx")
+            connect_path.upload_file_vers_s3("CUSTOM",wb,path)
 
             # Charger le fichier avec load_workbook (fichier_excel est un BytesIO)
-            wb = load_workbook(fichier_excel)
+            
 
             # Accéder à la feuille "tableau a remplir"
             feuille_a_remplir = wb['tableau a remplir']
@@ -1314,8 +1320,8 @@ class DictCustomMaitre(dict):
             )
 
             # Sauvegarder le fichier Excel modifié
-            chemin_sauvegarde = f"/mnt/e/carto/{contenu_CUSTOM.NOM_CUSTOM}.xlsx"
-            wb.save(chemin_sauvegarde)
+            path = os.path.join(self.folder_path,"tableau_proposition_"+contenu_CUSTOM.NOM_CUSTOM+".xlsx")
+            connect_path.upload_file_vers_s3("CUSTOM",wb,path)
 
         return "Exportation terminée"
 

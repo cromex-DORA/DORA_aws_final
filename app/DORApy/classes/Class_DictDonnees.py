@@ -68,7 +68,7 @@ class DictDonnees(dict):
             dict_donnees_hors_REF['dict_dict_df_actions_originaux'] = dict_dict_df_actions_originaux
 
         if self.type_rendu=='tableau_DORA_vers_BDD':
-            dict_dict_df_actions_originaux = DictDFTableauxActionsMIA.recuperation_dict_tableaux_actions_MIA(dict_dict_info_REF,liste_echelle_CUSTOM=self.liste_echelle_shp_CUSTOM_a_check,forme='final')
+            dict_dict_df_actions_originaux = DictDFTableauxActionsMIA.recuperation_dict_tableaux_actions_MIA(self)
             dict_donnees_hors_REF['dict_dict_df_actions_originaux'] = dict_dict_df_actions_originaux
         return dict_donnees_hors_REF
 
@@ -78,20 +78,20 @@ class DictDonnees(dict):
             for nom_donnees,contenu_donnees in self.items():
                 if nom_donnees == 'dict_dict_df_actions_originaux':
                     contenu_donnees = DictDFTableauxActionsMIA.recuperer_attribut_echelle_base_REF(contenu_donnees,dict_dict_info_REF,dict_CUSTOM_maitre)
-                    contenu_donnees = DictDFTableauxActionsMIA.gestion_col_echelle_base_REF(contenu_donnees,dict_dict_info_REF,dict_CUSTOM_maitre)
+                    #contenu_donnees = DictDFTableauxActionsMIA.gestion_col_echelle_base_REF(contenu_donnees,dict_dict_info_REF,dict_CUSTOM_maitre)
                     contenu_donnees = DictDFTableauxActionsMIA.mise_en_forme_tableau_actions_MIA_sans_modif_contenu(contenu_donnees,dict_dict_info_REF)
                     contenu_donnees = DictDFTableauxActionsMIA.mise_en_forme_format_DORA_tableau_actions_MIA_avec_modif_contenu(contenu_donnees,dict_relation_shp_liste,dict_dict_info_REF,dict_CUSTOM_maitre)
                     contenu_donnees = DictDFTableauxActionsMIA.suppression_lignes_df_actions_MIA(contenu_donnees,dict_dict_info_REF,dict_CUSTOM_maitre)
-                    df_BDD_DORA = DictDFTableauxActionsMIA.rassemblement_df_toutes_sources_pour_BDD_DORA(contenu_donnees)
+                    #df_BDD_DORA = DictDFTableauxActionsMIA.rassemblement_df_toutes_sources_pour_BDD_DORA(contenu_donnees)
                     
-            if 'dict_dict_df_actions_originaux' in self:
+            '''if 'dict_dict_df_actions_originaux' in self:
                 self["BDD_DORA"] = DictDFTableauxActionsMIA({})
                 self["BDD_DORA"].df = df_BDD_DORA
                 self["BDD_DORA"].echelle_df = "global"
                 self["BDD_DORA"].type_df = "DORA"
                 dict_config_col_BDD_DORA_vierge = config_DORA.import_dict_config_col_BDD_DORA_vierge()
                 self["BDD_DORA"].dict_type_col = dict_config_col_BDD_DORA_vierge['type_col']
-                df_BDD_DORA.to_csv("/mnt/g/travail/carto/projets basiques/PAOT global 5.0/test/essai_BDD_DORA.csv")  
+                df_BDD_DORA.to_csv("/mnt/g/travail/carto/projets basiques/PAOT global 5.0/test/essai_BDD_DORA.csv")'''
 
         if dict_CUSTOM_maitre.type_rendu == "carte" and dict_CUSTOM_maitre.type_donnees == "action" and dict_CUSTOM_maitre.thematique == "MIA":
             for nom_donnees,contenu_donnees in self.items():
@@ -109,7 +109,6 @@ class DictDonnees(dict):
         if dict_CUSTOM_maitre.type_rendu == "tableau_DORA_vers_BDD" and dict_CUSTOM_maitre.type_donnees == "action" and dict_CUSTOM_maitre.thematique == "MIA":
             for nom_donnees,contenu_donnees in self.items():
                 if nom_donnees == 'dict_dict_df_actions_originaux':
-
                     contenu_donnees = DictDFTableauxActionsMIA.actualisation_CODE_ME(contenu_donnees,dict_relation_shp_liste)
                     contenu_donnees = DictDFTableauxActionsMIA.transfert_BDD_DORA(contenu_donnees)
 

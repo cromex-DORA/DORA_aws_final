@@ -1,0 +1,79 @@
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.7); /* Fond sombre derrière la modal */
+}
+
+.success-modal {
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    margin-right: -50%;
+    margin-bottom: 0;
+    transform: translate(-50%, -50%); /* Centrer la modal */
+    width: 400px; /* Largeur de la modal */
+    height: 400px; /* Hauteur de la modal */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column; /* Alignement vertical */
+    align-items: center; /* Centrer le contenu */
+    justify-content: center; /* Centrer le contenu */
+}
+
+.success-modal h2 {
+    margin-bottom: 10px; /* Espacement sous le titre */
+}
+
+.success-modal p {
+    margin-bottom: 20px; /* Espacement sous le message */
+}
+
+.success-modal button {
+    padding: 10px 20px; /* Espacement autour du bouton */
+    border: none;
+    border-radius: 5px;
+    background-color: #1e90ff; /* Couleur de fond du bouton */
+    color: white; /* Couleur du texte du bouton */
+    cursor: pointer;
+}
+
+/* General button styling */
+.action-button {
+    background-color: #1e90ff; /* Bootstrap primary blue */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    width: 100%; /* Full width for better layout */
+}
+
+.action-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Styling for the delete button */
+.delete-button {
+    background-color: #ff4d4d; /* Red background */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.delete-button:hover {
+    background-color: #cc0000; /* Darker red on hover */
+}

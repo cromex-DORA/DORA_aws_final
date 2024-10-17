@@ -28,7 +28,8 @@
 /* Ajuste les éléments internes de la légende/filtres si nécessaire */
 .sidebar .import-button {
     margin-top: 20px;
-    width: 100%; /* Assure que le bouton prenne toute la largeur */
+    width: 100%;
+    background-color: #1e90ff; /* Assure que le bouton prenne toute la largeur */
 }
 
 .small-tooltip {

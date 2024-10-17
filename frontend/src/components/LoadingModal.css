@@ -1,0 +1,19 @@
+.loading-modal {
+    /* Ajustez la taille et le style de la modal */
+    max-height: 200px; /* largeur max */
+    margin: 0 auto;   /* centrer la modal horizontalement */
+}
+
+.loading-modal-body {
+    padding: 20px; /* Ajoutez de l'espace autour du contenu */
+}
+
+.loading-spinner {
+    width: 3rem; /* Taille du spinner */
+    height: 3rem; /* Taille du spinner */
+}
+
+.loading-message {
+    margin-top: 15px; /* Espace au-dessus du message */
+    font-size: 1.2rem; /* Taille de la police */
+}

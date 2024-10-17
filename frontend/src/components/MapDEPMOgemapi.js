@@ -85,8 +85,7 @@ const MapDEPMOgemapi = ({ geoJsonData, setSelectedFolderId, selectedFolderId, hi
             if (selectedMO) {
                 // Accéder aux coordonnées pour un MultiPolygon
                 const coordinates = selectedMO.geometry.coordinates[0][0]; // Récupérer le premier polygone
-                console.log("Coordinates:", coordinates); // Ajoute ce log pour vérifier les coordonnées
-
+          
                 // Vérifie que les coordonnées sont bien définies
                 const latLngs = coordinates.map(coord => {
                     const lat = coord[1];

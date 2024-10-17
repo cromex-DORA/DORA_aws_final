@@ -54,7 +54,7 @@ class DfTableauxActionsMIA:
         self.stockage_df_brut()
         self.changement_contenu_case_vide_NAN_str_list()
         self.traitement_Int64()
-        self.traitement_str_et_list()
+        #self.traitement_str_et_list()
         self.completer_col_NOM_MO()
 
 
@@ -310,26 +310,6 @@ class DfTableauxActionsMIA:
             dict_type_col['CODE_SME'] = 'str'
         return df
 
-    def remplacement_NOM_PPG_si_necessaire(df_tableau,CODE_MO,dict_dict_info_REF,dict_relation_shp_liste):
-        list_PPG_dans_df = list(set(df_tableau['NOM_PPG'].to_list()))
-        list_PPG_dans_df = [x for x in list_PPG_dans_df if x!='nan']
-        nom_tableau = dict_dict_info_REF['df_info_MO'].dict_CODE_NOM[CODE_MO]
-        for NOM_PPG_dans_df_tableau in list_PPG_dans_df:
-            if NOM_PPG_dans_df_tableau not in dict_dict_info_REF['df_info_PPG']['NOM_PPG'].to_list():
-                print("Pour le tableau " + nom_tableau + ", pas de " + NOM_PPG_dans_df_tableau + " concordant trouvé dans df_info_PPG.csv")  
-                liste_PPG_du_CUSTOM = dict_relation_shp_liste["dict_liste_PPG_par_CUSTOM"][CODE_MO]
-                if len(liste_PPG_du_CUSTOM)==0:
-                    print("Pas de PPG pour ce MO dans df_info_PPG")
-                if len(liste_PPG_du_CUSTOM)==1:
-                    print("Mais il n'y a qu'un seul PPG dans df_info_PPG qui correspond à ce CUSTOM : " +  nom_tableau)
-                    CODE_PPG = dict_relation_shp_liste["dict_liste_PPG_par_CUSTOM"][CODE_MO][0]
-                    NOM_PPG = dict_dict_info_REF['df_info_PPG'].dict_CODE_NOM[dict_relation_shp_liste["dict_liste_PPG_par_CUSTOM"][CODE_MO][0]]
-                    df_tableau.loc[(df_tableau['NOM_PPG']!='nan')&(df_tableau['NOM_PPG']!=NOM_PPG),"CODE_PPG"]=CODE_PPG
-                    df_tableau.loc[df_tableau['NOM_PPG']==NOM_PPG_dans_df_tableau,"NOM_PPG"] = NOM_PPG
-                if len(liste_PPG_du_CUSTOM)>1:
-                    print("Plusieurs PPG dans df_info_PPG qui correspondent à ce CUSTOM : " +  nom_tableau)
-        return df_tableau
-
     def mise_en_forme_col_action_phare(df_tableau):
         if "Action_phare" in list(df_tableau):
             df_tableau.loc[df_tableau["Action_phare"]!='nan',"Action_phare"] = "x"
@@ -340,18 +320,61 @@ class DfTableauxActionsMIA:
         df_tableau = df_tableau.loc[df_tableau['Avancement']!='nan']
         return df_tableau    
 
-    def ajout_colonne_CODE_REF_permanent(df,dict_dict_info_REF,echelle_df,dict_type_col):
-        list_REF_df_info = [x.split("_")[-1] for x in list(dict_dict_info_REF)]
-        list_col_NOM = dataframe.extraction_liste_col_NOM(df,list_REF_df_info)
-        for nom_col_REF in list_col_NOM:
-            CODE_REF = "CODE_" + nom_col_REF.split("_")[1]
-            if CODE_REF not in list(df):
-                type_REF = nom_col_REF.split("_")[1]
-                dict_NOM_CODE_REF = dict_dict_info_REF['df_info_'+type_REF].dict_NOM_CODE
-                df[CODE_REF] = df[nom_col_REF].apply(lambda x: dict_NOM_CODE_REF[x] if x in dict_NOM_CODE_REF else "nan")
-                if CODE_REF not in dict_type_col:
-                    df[CODE_REF] = df[CODE_REF].fillna('nan')
-                    dict_type_col[CODE_REF] = 'str'
+    def ajout_colonne_CODE_REF_permanent(df,dict_relation_shp_liste,dict_dict_info_REF,echelle_df,CODE_custom):
+        dict_config_col_BDD_DORA_vierge = config_DORA.import_dict_config_col_BDD_DORA_vierge()
+        dict_type_col = dict_config_col_BDD_DORA_vierge['type_col']
+        list_col_CODE = dataframe.extraction_liste_col_CODE(df,dict_dict_info_REF)
+        #On considère qu'il y a toujours un seul maitre d'ouvrage
+        list_col_CODE = [x for x in list_col_CODE if x not in ["CODE_ROE"]]
+        for type_CODE_REF in list_col_CODE:
+            echelle_REF = type_CODE_REF.split('_')[-1]
+
+            def extraire_list_de_list(df,echelle_REF):
+                echelle_princ_action = df['echelle_princ_action']
+                if dict_type_col['CODE_'+echelle_princ_action]=="list":
+                    list_list_CODE_REF = []
+                    list_CODE_REF_echelle_princip = df['CODE_'+df['echelle_princ_action']]
+                    if echelle_REF!=df['echelle_princ_action']:
+                        for CODE_REF in list_CODE_REF_echelle_princip:
+                            if CODE_REF not in dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action]:
+                                pass
+                                #list_list_CODE_REF = [['Pas de '+echelle_REF]]
+                            if CODE_REF in dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action]:
+                                if dict_type_col['CODE_'+echelle_REF]=="str":
+                                    if CODE_REF in dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action]:
+                                        list_CODE_REF_a_ajouter = dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action][CODE_REF]
+                                    if CODE_REF not in dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action]:
+                                        list_CODE_REF_a_ajouter = 'Pas de '+echelle_REF
+                                if dict_type_col['CODE_'+echelle_REF]=="list":                          
+                                    list_CODE_REF_a_ajouter = dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action][CODE_REF]
+                                #Attention, il faut rajouter un filtre "logique" : Quand une MO nous indique une ME, elle parle de la MO dans son périmètre.
+
+                                list_list_CODE_REF.append(list_CODE_REF_a_ajouter)
+                    if echelle_REF==df['echelle_princ_action']:
+                        if dict_type_col['CODE_'+echelle_REF]=="list":
+                            list_list_CODE_REF = [df['CODE_'+df['echelle_princ_action']]]
+                            
+                        if dict_type_col['CODE_'+echelle_REF]=="str":
+                            list_list_CODE_REF = df['CODE_'+df['echelle_princ_action']]
+                    list_CODE_REF=[x for xs in list_list_CODE_REF for x in xs]
+                    if dict_type_col['CODE_'+echelle_REF]=="list":
+                        list_CODE_REF = list(set(list_CODE_REF))
+
+                if dict_type_col['CODE_'+echelle_princ_action]=="str":
+                    CODE_REF = df['CODE_'+df['echelle_princ_action']]
+                    if echelle_REF!=df['echelle_princ_action']:
+                        if CODE_REF in dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action]:
+                            if dict_type_col['CODE_'+echelle_REF]=="str":
+                                if CODE_REF in dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action]:
+                                    list_CODE_REF = dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action][CODE_REF][0]
+                                if CODE_REF not in dict_relation_shp_liste['dict_liste_' + echelle_REF + '_par_'+echelle_princ_action]:
+                                    list_CODE_REF = ['Pas de '+echelle_REF]
+                            if dict_type_col['CODE_'+echelle_REF]=="list":                          
+                                list_CODE_REF = dict_relation_shp_liste['dict_liste_'+echelle_REF+'_par_'+echelle_princ_action][CODE_REF]
+                    if echelle_REF==df['echelle_princ_action']:
+                        list_CODE_REF = df['CODE_'+df['echelle_princ_action']]
+                return list_CODE_REF
+            df['CODE_'+echelle_REF] = df.apply(lambda x:extraire_list_de_list(x,echelle_REF),axis=1)
         return df
 
     def ajout_colonne_manquante_df_type_DORA(df):
@@ -397,10 +420,22 @@ class DfTableauxActionsMIA:
         if echelle_df == 'global_Osmose':
             df["echelle_princ_action"] = "ME"
 
-        if dict_type_col['CODE_'+echelle_base_REF]=="list":
+        '''if dict_type_col['CODE_'+echelle_base_REF]=="list":
             df.loc[df['echelle_princ_action']!=echelle_base_REF,"CODE_"+echelle_base_REF] = df["CODE_"+echelle_base_REF].apply(lambda x:[])
         if dict_type_col['CODE_'+echelle_base_REF]=="str":
-            df.loc[df['echelle_princ_action']!=echelle_base_REF,"CODE_"+echelle_base_REF] = "nan"
+            df.loc[df['echelle_princ_action']!=echelle_base_REF,"CODE_"+echelle_base_REF] = "nan"'''
+        return df
+
+    def gestion_type_col_localisation_principale(df,dict_dict_info_REF,CODE_CUSTOM):
+        dict_config_col_BDD_DORA_vierge = config_DORA.import_dict_config_col_BDD_DORA_vierge()
+        list_echelle_col_echelle_princ_action = list(set(df['echelle_princ_action'].to_list()))
+        for echelle_princ_action in list_echelle_col_echelle_princ_action:
+            if dict_config_col_BDD_DORA_vierge['type_col']['CODE_'+echelle_princ_action]=="str":
+                df.loc[(df['CODE_'+echelle_princ_action].apply(lambda x: x == 'nan')&(df['echelle_princ_action']==echelle_princ_action)),'CODE_'+echelle_princ_action] = df['NOM_'+echelle_princ_action].map(dict_dict_info_REF['df_info_' + echelle_princ_action].dict_NOM_CODE)
+            if dict_config_col_BDD_DORA_vierge['type_col']['CODE_'+echelle_princ_action]=="list":
+                df.loc[(df['CODE_'+echelle_princ_action].apply(lambda x: x == 'nan')&(df['echelle_princ_action']==echelle_princ_action)),'CODE_'+echelle_princ_action] = df['NOM_'+echelle_princ_action].map(dict_dict_info_REF['df_info_' + echelle_princ_action].dict_NOM_CODE)
+                df['CODE_'+echelle_princ_action] = df['CODE_'+echelle_princ_action].apply(lambda x:'nan' if x!=x else x)
+                df['CODE_'+echelle_princ_action] = df['CODE_'+echelle_princ_action].apply(lambda x:x.split(","))
         return df
 
     def ajout_CODE_REF(df,dict_CUSTOM_maitre):

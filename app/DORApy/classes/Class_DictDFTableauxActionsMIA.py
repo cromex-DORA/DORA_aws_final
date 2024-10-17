@@ -36,8 +36,10 @@ class DictDFTableauxActionsMIA(dict):
         for nom_CUSTOM,dict_CUSTOM in self.items():
             chemin_dossier = Class_Folder.get_path_dossier_CUSTOM(dict_CUSTOM.echelle_REF)
             CODE_REF = dict_CUSTOM.CODE_CUSTOM
-            nom_fichier = "fichier_rempli_" + dict_CUSTOM.NOM_CUSTOM + ".xlsx"
-
+            if self.type_rendu == "tableau_DORA_vers_BDD":
+                nom_fichier = "tableau_proposition_" + dict_CUSTOM.NOM_CUSTOM + ".xlsx"
+            if self.type_rendu == "verif_tableau_DORA":
+                nom_fichier = "tableau_rempli_" + dict_CUSTOM.NOM_CUSTOM + ".xlsx"
             self.complet_path = connect_path.get_file_path_racine(os.path.join(chemin_dossier,CODE_REF,nom_fichier))
             self.relative_path = os.path.join(chemin_dossier,CODE_REF,nom_fichier)
             self.folder_path = os.path.join(chemin_dossier,CODE_REF)
@@ -195,7 +197,6 @@ class DictDFTableauxActionsMIA(dict):
     def mise_en_forme_tableau_actions_MIA_sans_modif_contenu(dict_dict_df_actions_originaux,dict_dict_info_REF):
         for nom_tableau,dict_df_actions_originaux in dict_dict_df_actions_originaux.items():
             ###Les verifs
-            dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.ajout_colonne_CODE_REF_permanent(dict_dict_df_actions_originaux[nom_tableau].df,dict_dict_info_REF,dict_dict_df_actions_originaux[nom_tableau].echelle_df,dict_dict_df_actions_originaux[nom_tableau].dict_type_col)
             dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.ajout_colonne_manquante_df_type_DORA(dict_dict_df_actions_originaux[nom_tableau].df)
             dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.traitement_BDD_OSMOSE_format_DORA(dict_dict_df_actions_originaux[nom_tableau].df,dict_dict_info_REF,dict_dict_df_actions_originaux[nom_tableau].echelle_df)
         return dict_dict_df_actions_originaux
@@ -209,13 +210,12 @@ class DictDFTableauxActionsMIA(dict):
             dict_nb_chiffres = dict_dict_df_actions_originaux[nom_tableau].dict_nb_chiffres
 
             ###Suppression lignes vides
-            #dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.gestion_colonne_echelle_base_REF(dict_dict_df_actions_originaux[nom_tableau].df,echelle_df,dict_dict_info_REF,dict_type_col,dict_dict_df_actions_originaux[nom_tableau].echelle_base_REF)
             #dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.changement_type_col_tableaux_actions_MIA(dict_dict_df_actions_originaux[nom_tableau].df,echelle_df,dict_dict_info_REF,dict_type_col,dict_nb_chiffres)
             dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.mise_en_forme_col_action_phare(dict_dict_df_actions_originaux[nom_tableau].df)
             dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.definition_col_localisation_principale(dict_dict_df_actions_originaux[nom_tableau].df,echelle_df,echelle_base_REF,dict_type_col)
+            dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.gestion_type_col_localisation_principale(dict_dict_df_actions_originaux[nom_tableau].df,dict_dict_info_REF,dict_dict_df_actions_originaux[nom_tableau].CODE_CUSTOM)
+            dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.ajout_colonne_CODE_REF_permanent(dict_dict_df_actions_originaux[nom_tableau].df,dict_relation_shp_liste,dict_dict_info_REF,dict_dict_df_actions_originaux[nom_tableau].echelle_df,dict_dict_df_actions_originaux[nom_tableau].CODE_CUSTOM)
             #dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.chgt_CODE_hors_REF_base(dict_dict_df_actions_originaux[nom_tableau].df,echelle_df,dict_type_col,dict_relation_shp_liste)
-            if echelle_df=="MO":
-                dict_dict_df_actions_originaux[nom_tableau].df = DfTableauxActionsMIA.remplacement_NOM_PPG_si_necessaire(dict_dict_df_actions_originaux[nom_tableau].df,dict_dict_df_actions_originaux[nom_tableau].CODE_CUSTOM,dict_dict_info_REF,dict_relation_shp_liste)
         return dict_dict_df_actions_originaux
     
     def rassemblement_df_toutes_sources_pour_BDD_DORA(self):

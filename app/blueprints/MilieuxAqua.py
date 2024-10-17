@@ -1,8 +1,8 @@
 from flask import Flask, send_from_directory, jsonify, request, Response, Blueprint
 import os
 from flask_cors import CORS
-from app.DORApy import check_tableau_DORA, creation_carte,manipulation_MO
-from app.DORApy import gestion_admin,creation_tableau_vierge_DORA,creation_carte,check_tableau_DORA
+from app.DORApy import gestion_tableau_DORA, creation_carte,manipulation_MO
+from app.DORApy import gestion_admin,gestion_tableau_DORA,creation_carte,gestion_tableau_DORA
 from app.DORApy.classes.modules import connect_path
 from werkzeug.utils import secure_filename
 
@@ -33,7 +33,7 @@ def creer_tableau_vierge_DORA():
     name = request.form.get('name', '')
     path = os.path.join("MO_gemapi",id_folder)
 
-    df_vierge_MO = creation_tableau_vierge_DORA.create_tableau_vierge_DORA([id_folder])
+    df_vierge_MO = gestion_tableau_DORA.create_tableau_vierge_DORA([id_folder])
 
     path = os.path.join("MO_gemapi",id_folder,"tableau_vierge_" + name + ".xlsx")
 
@@ -122,8 +122,8 @@ def verif_tableau_DORA():
     print(file, file=sys.stderr)
     file_name = "fichier_rempli_"+NOM_MO+".xlsx"
     connect_path.upload_file_vers_s3("CUSTOM",file,os.path.join("MO_gemapi",CODE_MO,file_name))
-    check_tableau_DORA.verification_tableau_vierge_DORA([CODE_MO])
-    return jsonify({'message': 'Error processing files'}), 500
+    gestion_tableau_DORA.verification_tableau_vierge_DORA([CODE_MO])
+    return jsonify({'message': 'File created successfully'}), 201
 
 @MilieuxAqua_bp.route('/suppression_MO_GEMAPI', methods=['POST'])
 def suppression_MO_GEMAPI():

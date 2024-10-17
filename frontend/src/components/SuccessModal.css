@@ -1,0 +1,4 @@
+.custom-success-modal {
+    max-height: 400px; /* Ajustez la hauteur maximale */
+    overflow-y: auto; /* Permet le défilement si le contenu déborde */
+}
