@@ -4,6 +4,7 @@ import MapDEPMOgemapi from './MapDEPMOgemapi';
 import ContenuMO from './ContenuMO';
 import Breadcrumb from './Breadcrumb';
 import ContenuSousRef from './ContenuSousRef';
+import TableauPAOT from './TableauPAOT';
 import { jwtDecode } from 'jwt-decode';
 import './Milieuxaquatiques.css';
 import { fetchMOThunk, fetchPPGThunk, fetchMEThunk, fetchCEMEThunk } from '../features/geojson/geojsonSlice';
@@ -140,13 +141,16 @@ const Milieuxaquatiques = () => {
             <div className="contenu-sous-ref">
                 <ContenuSousRef selectedMEId={selectedMEId} />
             </div>
-            <div className="other-section">
-                {/* Affichage de la valeur de selectedFolderId */}
+            <div className="tableau_action_PAOT">
                 <h4>Folder ID sélectionné: {selectedFolderId !== null ? selectedFolderId : 'Aucun'}</h4>
-                {/* Bouton pour réinitialiser selectedFolderId */}
                 <button onClick={resetSelectedFolderId}>
                     Réinitialiser le dossier sélectionné
                 </button>
+                <TableauPAOT 
+                folderName={folderName} 
+                selectedFolderId={selectedFolderId} 
+                selectedMEId={selectedMEId} 
+            />
             </div>
         </div>
     );

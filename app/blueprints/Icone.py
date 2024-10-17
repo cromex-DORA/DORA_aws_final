@@ -25,7 +25,6 @@ icons_data = {
 def get_me_icons(selectedMEId):
     # Vérifie si l'ID de ME existe dans les données
     df_tempo = dict_dict_info_REF['df_info_ME'].loc[dict_dict_info_REF['df_info_ME']['CODE_ME']==selectedMEId]
-    print(df_tempo,file=sys.stderr)
     
     icons_data = {
         selectedMEId: {

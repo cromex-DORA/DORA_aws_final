@@ -125,6 +125,33 @@ def verif_tableau_DORA():
     gestion_tableau_DORA.verification_tableau_vierge_DORA([CODE_MO])
     return jsonify({'message': 'File created successfully'}), 201
 
+@MilieuxAqua_bp.route('/upload_tableau_final_vers_DORA', methods=['POST'])
+def upload_tableau_final_vers_DORA():
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'message': 'Token is missing'}), 403
+
+    try:
+        decoded_token = jwt.decode(token, SECRET_JKEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired'}), 403
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid token'}), 403 
+
+
+    file = request.files.get('file')
+    NOM_MO = request.form.get('NOM_MO')
+    CODE_MO = request.form.get('CODE_MO')
+
+    file_name = "tableau_proposition_"+NOM_MO+".xlsx"
+    connect_path.upload_file_vers_s3("CUSTOM",file,os.path.join("MO_gemapi",CODE_MO,file_name))
+
+    LISTE_CODE_CUSTOM = [CODE_MO]
+    gestion_tableau_DORA.upload_tableau_final_vers_BDD_DORA(LISTE_CODE_CUSTOM,"MO")
+
+    return jsonify({'message': 'import dans DORA réalisé avec succès'}), 201
+
+
 @MilieuxAqua_bp.route('/suppression_MO_GEMAPI', methods=['POST'])
 def suppression_MO_GEMAPI():
     print("allo", file=sys.stderr)

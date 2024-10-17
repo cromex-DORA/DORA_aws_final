@@ -93,7 +93,7 @@ def create_tableau_vierge_DORA(LISTE_CODE_CUSTOM,TYPE_REF=None):
     fichier_excel = DictCustomMaitre.export_fichier_excel_perso(dict_CUSTOM_maitre,dict_relation_shp_liste,dict_dict_info_REF,dict_decoupREF)
     return fichier_excel
  
-def upload_tableau_final_vers_DORA(LISTE_CODE_CUSTOM,TYPE_REF=None):
+def upload_tableau_final_vers_BDD_DORA(LISTE_CODE_CUSTOM,TYPE_REF=None):
     ##Creation class principale qui appelle toutes les autres classes automatiquement
     dict_CUSTOM_maitre = DictCustomMaitre({})
     dict_CUSTOM_maitre.set_config_type_projet(type_rendu='tableau_DORA_vers_BDD',type_donnees='action',thematique='MIA',public_cible="elu",liste_echelle_shp_CUSTOM_a_check=['MO','DEP'],liste_grand_bassin=['AG'])
@@ -104,9 +104,8 @@ def upload_tableau_final_vers_DORA(LISTE_CODE_CUSTOM,TYPE_REF=None):
     dict_df_donnees = DictDonnees.recuperation_donnees_pour_projet(dict_CUSTOM_maitre,dict_dict_info_REF)
     dict_df_donnees = DictDonnees.traitement_donnees(dict_df_donnees,dict_CUSTOM_maitre,dict_dict_info_REF,dict_relation_shp_liste)
 
-    joblib.dump(dict_df_donnees, 'dict_df_donnees.joblib')
-    dict_df_donnees = joblib.load('dict_df_donnees.joblib')
-    (dict_df_donnees['dict_dict_df_actions_originaux']['SYNDICAT MIXTE DU BASSIN VERSANT DU RUISSEAU DU GUA'].df.dtypes)
+    #joblib.dump(dict_df_donnees, 'dict_df_donnees.joblib')
+    #dict_df_donnees = joblib.load('dict_df_donnees.joblib')
     dict_df_donnees = DictDonnees.conversion_en_SQL(dict_df_donnees,dict_CUSTOM_maitre)
     #####################################################################
     #export du tableau perso
